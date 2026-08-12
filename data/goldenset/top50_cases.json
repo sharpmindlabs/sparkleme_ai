@@ -1,0 +1,369 @@
+{
+  "cases": [
+    {
+      "test_id": 1,
+      "client_id": "6071",
+      "carol_result": "True Autumn",
+      "ai_first_pass": "True Autumn",
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 2,
+      "client_id": "6762",
+      "carol_result": "True Summer",
+      "ai_first_pass": "True Summer",
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 3,
+      "client_id": "4363",
+      "carol_result": "True Spring",
+      "ai_first_pass": "True Summer",
+      "correct_first_time": "No"
+    },
+    {
+      "test_id": 4,
+      "client_id": "4355",
+      "carol_result": "True Autumn",
+      "ai_first_pass": "Home Season Summer \nwith Autumn at close second",
+      "correct_first_time": "No"
+    },
+    {
+      "test_id": 5,
+      "client_id": "4301",
+      "carol_result": "True Summer",
+      "ai_first_pass": "True Summer",
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 6,
+      "client_id": "808",
+      "carol_result": "True Winter",
+      "ai_first_pass": "True Winter",
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 7,
+      "client_id": "6761",
+      "carol_result": "Warm",
+      "ai_first_pass": "Muted",
+      "correct_first_time": "No"
+    },
+    {
+      "test_id": 8,
+      "client_id": "6072",
+      "carol_result": "Deep",
+      "ai_first_pass": "True Winter",
+      "correct_first_time": "No"
+    },
+    {
+      "test_id": 9,
+      "client_id": "6779",
+      "carol_result": "Cool",
+      "ai_first_pass": "Cool",
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 10,
+      "client_id": "682",
+      "carol_result": "True Summer",
+      "ai_first_pass": "True Summer",
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 11,
+      "client_id": "4352",
+      "carol_result": "Light",
+      "ai_first_pass": "True Summer, moving towards Light",
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 12,
+      "client_id": "4281",
+      "carol_result": "Bright",
+      "ai_first_pass": null,
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 13,
+      "client_id": "4208",
+      "carol_result": "Muted",
+      "ai_first_pass": "True Summer moving towards Muted",
+      "correct_first_time": "No, but so close"
+    },
+    {
+      "test_id": 14,
+      "client_id": "4216",
+      "carol_result": "Warm",
+      "ai_first_pass": "Warm, Autumn",
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 15,
+      "client_id": "4196",
+      "carol_result": "Warm",
+      "ai_first_pass": "Warm, Autumn",
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 16,
+      "client_id": "4190",
+      "carol_result": "Warm",
+      "ai_first_pass": "True Autumn",
+      "correct_first_time": "No"
+    },
+    {
+      "test_id": 17,
+      "client_id": "4192",
+      "carol_result": "Deep",
+      "ai_first_pass": "Deep, Winter",
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 18,
+      "client_id": "4191",
+      "carol_result": "True Winter",
+      "ai_first_pass": "True Winter",
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 19,
+      "client_id": "4204",
+      "carol_result": "True Autumn",
+      "ai_first_pass": "True Autumn",
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 20,
+      "client_id": "4306",
+      "carol_result": "True Spring",
+      "ai_first_pass": "True Spring",
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 21,
+      "client_id": "4195",
+      "carol_result": "True Spring",
+      "ai_first_pass": "Cool, Summer",
+      "correct_first_time": "No"
+    },
+    {
+      "test_id": 22,
+      "client_id": "4311",
+      "carol_result": "True Summer",
+      "ai_first_pass": "True Summer",
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 23,
+      "client_id": "6526",
+      "carol_result": "Muted",
+      "ai_first_pass": "True Summer",
+      "correct_first_time": "No, but so close"
+    },
+    {
+      "test_id": 24,
+      "client_id": "6540",
+      "carol_result": "Light",
+      "ai_first_pass": "True Spring",
+      "correct_first_time": "No, but so close"
+    },
+    {
+      "test_id": 26,
+      "client_id": "6562",
+      "carol_result": "Bright",
+      "ai_first_pass": "Bright, Spring",
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 27,
+      "client_id": "6560",
+      "carol_result": "Bright",
+      "ai_first_pass": "Cool, this is very close!",
+      "correct_first_time": "No"
+    },
+    {
+      "test_id": 28,
+      "client_id": "6570",
+      "carol_result": "Bright",
+      "ai_first_pass": "Bright, Winter",
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 30,
+      "client_id": "6622",
+      "carol_result": "True Winter",
+      "ai_first_pass": "Cool, Winter - see notes I am fine with this result",
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 31,
+      "client_id": "6627",
+      "carol_result": "Muted",
+      "ai_first_pass": "True Summer - close!",
+      "correct_first_time": "No"
+    },
+    {
+      "test_id": 32,
+      "client_id": "4329",
+      "carol_result": "True Autumn",
+      "ai_first_pass": "True Autumn",
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 33,
+      "client_id": "4336",
+      "carol_result": "Deep or True Winter moving towards Deep. It is a very close call.",
+      "ai_first_pass": "True Winter, close!",
+      "correct_first_time": "No"
+    },
+    {
+      "test_id": 34,
+      "client_id": "6505",
+      "carol_result": "Muted",
+      "ai_first_pass": "Muted",
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 35,
+      "client_id": "6586",
+      "carol_result": "True Spring",
+      "ai_first_pass": "True Summer",
+      "correct_first_time": "No"
+    },
+    {
+      "test_id": 36,
+      "client_id": "6591",
+      "carol_result": "Muted or True Summer Moving Towards Muted",
+      "ai_first_pass": "Muted, True Summer moving slightly towards Muted",
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 37,
+      "client_id": "6583",
+      "carol_result": "True Spring",
+      "ai_first_pass": "True Spring",
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 38,
+      "client_id": "6727",
+      "carol_result": "True Autumn",
+      "ai_first_pass": "Deep, but so close!!!",
+      "correct_first_time": "No"
+    },
+    {
+      "test_id": 39,
+      "client_id": "5218",
+      "carol_result": "True Winter",
+      "ai_first_pass": "Deep, but so close!!!",
+      "correct_first_time": "No"
+    },
+    {
+      "test_id": 40,
+      "client_id": "5205",
+      "carol_result": "True Autumn",
+      "ai_first_pass": "True Autumn",
+      "correct_first_time": "No"
+    },
+    {
+      "test_id": 41,
+      "client_id": "5203",
+      "carol_result": "Cool",
+      "ai_first_pass": "Cool, Summer",
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 42,
+      "client_id": "5200",
+      "carol_result": "True Autumn",
+      "ai_first_pass": "True Autumn moving towards Deep (I am okay with this)",
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 43,
+      "client_id": "5220",
+      "carol_result": "True Autumn",
+      "ai_first_pass": "Trrue Autumn moving towards Muted",
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 44,
+      "client_id": "5216",
+      "carol_result": "Muted",
+      "ai_first_pass": "Muted",
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 45,
+      "client_id": "5206",
+      "carol_result": "True Autumn",
+      "ai_first_pass": "True Autumn moving towards Deep (I am okay with this)",
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 47,
+      "client_id": "5226",
+      "carol_result": "Muted",
+      "ai_first_pass": "Muted",
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 48,
+      "client_id": "4206",
+      "carol_result": "Deep",
+      "ai_first_pass": "Deep",
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 49,
+      "client_id": "4225",
+      "carol_result": "True Winter",
+      "ai_first_pass": null,
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 50,
+      "client_id": "6757",
+      "carol_result": "True Spring",
+      "ai_first_pass": "True Summer",
+      "correct_first_time": "No"
+    },
+    {
+      "test_id": 51,
+      "client_id": "6754",
+      "carol_result": "Bright",
+      "ai_first_pass": "Deep, Winter",
+      "correct_first_time": "No"
+    },
+    {
+      "test_id": 52,
+      "client_id": "6755",
+      "carol_result": "Bright",
+      "ai_first_pass": "Bright, it could not decide between Spring or Winter - which is totally fine!",
+      "correct_first_time": "Yes"
+    },
+    {
+      "test_id": 53,
+      "client_id": "6556",
+      "carol_result": "True Summer, moving slightly toward Cool",
+      "ai_first_pass": "True Summer Moving Towards Cool",
+      "correct_first_time": "Yes"
+    }
+  ],
+  "palette_values_seen": [
+    "Bright",
+    "Cool",
+    "Deep",
+    "Deep or True Winter moving towards Deep. It is a very close call.",
+    "Light",
+    "Muted",
+    "Muted or True Summer Moving Towards Muted",
+    "True Autumn",
+    "True Spring",
+    "True Summer",
+    "True Summer, moving slightly toward Cool",
+    "True Winter",
+    "Warm"
+  ]
+}
