@@ -1,3 +1,4 @@
 fixtures/cases/
 .env
 results/
+static/
