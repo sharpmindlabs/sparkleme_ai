@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+.pnp/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Build output
+.next/
+dist/
+build/
+*.tsbuildinfo
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Large assets / test images (wired via provider interface, not committed)
+fixtures/cases/**/*.jpeg
+fixtures/cases/**/*.jpg
+fixtures/cases/**/*.png
+*.zip
+
+# Logs
+*.log
