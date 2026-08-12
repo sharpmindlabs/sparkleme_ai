@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SparkleMe — Virtual Colour Analysis</title>
+<style>
+:root{
+  --bg:#ffffff; --card:#ffffff; --ink:#0f2e38; --muted:#537882; --line:rgba(13,84,105,.16);
+  --brand:#0e7490; --brand2:#005f73; --accent:#00b4d8; --gold:#d4af6a;
+  --ok:#1d8a4e; --warn:#c77700; --bad:#c0263a; --info:#2a6f8f;
+  --sidebar:rgba(3,46,61,.86); --sidebar-ink:#a9cdd8;
+  --glass-border:rgba(255,255,255,.65);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#ffffff;color:var(--ink);font-size:14px}
+#root{position:relative;z-index:1}
+a{color:var(--brand);text-decoration:none}
+h1{font-size:22px;margin-bottom:4px} h2{font-size:16px;margin-bottom:10px} h3{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.app{display:flex;min-height:100vh}
+/* ---------- sidebar ---------- */
+.sidebar{width:222px;background:#063442;color:var(--sidebar-ink);padding:18px 12px;position:fixed;top:0;bottom:0;display:flex;flex-direction:column;border-right:1px solid rgba(255,255,255,.14);z-index:2}
+.logo{font-size:19px;font-weight:700;color:#fff;padding:4px 10px 18px}
+.logo span{background:linear-gradient(90deg,#ffd166,#4cd7e8);-webkit-background-clip:text;background-clip:text;color:transparent}
+.nav a{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;color:var(--sidebar-ink);margin-bottom:2px;font-size:13.5px}
+.nav a.active,.nav a:hover{background:rgba(255,255,255,.09);color:#fff}
+.nav .ico{width:18px;text-align:center}
+.sidebar .me{margin-top:auto;padding:10px;border-top:1px solid rgba(255,255,255,.12);font-size:12px}
+.sidebar .me b{color:#fff;display:block}
+.sidebar .me button{margin-top:8px;width:100%}
+.main{margin-left:222px;flex:1;padding:24px 28px;max-width:1220px}
+/* ---------- generic ---------- */
+.card{background:#ffffff;border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:16px;box-shadow:0 4px 18px rgba(2,62,81,.06)}
+.grid{display:grid;gap:14px}
+.g4{grid-template-columns:repeat(4,1fr)} .g3{grid-template-columns:repeat(3,1fr)} .g2{grid-template-columns:repeat(2,1fr)} .g5{grid-template-columns:repeat(5,1fr)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.sp{justify-content:space-between}
+.kpi .num{font-size:26px;font-weight:700} .kpi .lbl{color:var(--muted);font-size:12px} .kpi .sub{font-size:11px;margin-top:3px}
+.up{color:var(--ok)} .down{color:var(--bad)}
+button,.btn{background:linear-gradient(135deg,var(--brand),var(--accent));color:#fff;border:none;border-radius:10px;padding:8px 14px;font-size:13px;cursor:pointer;font-family:inherit;box-shadow:0 2px 10px rgba(0,116,144,.25)}
+button:hover{filter:brightness(1.12)}
+button.ghost{background:rgba(255,255,255,.45);color:var(--brand);border:1px solid var(--brand);box-shadow:none}
+button.gray{background:rgba(14,116,144,.10);color:var(--ink);box-shadow:none} button.green{background:var(--ok)} button.red{background:var(--bad)} button.amber{background:var(--warn)}
+button.sm{padding:5px 10px;font-size:12px}
+input,select,textarea{border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px;font-family:inherit;background:#ffffff;color:var(--ink);width:100%}
+textarea{resize:vertical}
+label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px;font-weight:600}
+.field{margin-bottom:12px}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;text-transform:uppercase;color:var(--muted);text-align:left;padding:8px;border-bottom:2px solid var(--line);cursor:pointer;letter-spacing:.04em}
+td{padding:9px 8px;border-bottom:1px solid var(--line);font-size:13px}
+tr.click:hover{background:rgba(14,116,144,.07);cursor:pointer}
+.chip{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;margin:1px}
+.chip.ok{background:rgba(29,138,78,.14);color:var(--ok)} .chip.warn{background:rgba(199,119,0,.14);color:var(--warn)} .chip.bad{background:rgba(192,38,58,.13);color:var(--bad)} .chip.info{background:rgba(42,111,143,.14);color:var(--info)} .chip.plain{background:rgba(14,116,144,.13);color:var(--brand)} .chip.gray{background:rgba(90,110,120,.14);color:#567}
+.badge-rec{position:absolute;top:8px;left:8px;background:var(--gold);color:#3d2c00;font-weight:700;font-size:10px;padding:3px 8px;border-radius:12px;z-index:3}
+.muted{color:var(--muted)} .small{font-size:12px} .b{font-weight:600}
+.mt{margin-top:12px} .mb{margin-bottom:12px}
+/* ---------- overlays ---------- */
+.pal-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.pal-card{position:relative;border-radius:10px;overflow:hidden;border:2px solid transparent;aspect-ratio:1/1.15;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pal-card.rec{border-color:var(--gold);box-shadow:0 0 0 3px #e9ba4755}
+.pal-card svg{width:52%;filter:drop-shadow(0 2px 6px rgba(0,0,0,.35));z-index:2}
+.pal-name{position:absolute;bottom:0;left:0;right:0;background:rgba(8,25,19,.74);color:#fff;font-size:11px;font-weight:600;text-align:center;padding:4px}
+.swatch-row{display:flex;height:14px;border-radius:4px;overflow:hidden;margin-top:4px}
+.swatch-row i{flex:1}
+/* ---------- misc ---------- */
+.tabbar{display:flex;gap:4px;border-bottom:2px solid var(--line);margin-bottom:14px}
+.tabbar button{background:none;color:var(--muted);border-radius:8px 8px 0 0;padding:9px 16px}
+.tabbar button.on{color:var(--brand);font-weight:700;box-shadow:inset 0 -2px 0 var(--brand)}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(1200px 600px at 20% 0%,#0a9396,#023545)}
+.login-card{width:380px;background:rgba(255,255,255,.78);border-radius:20px;padding:34px;backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);border:1px solid rgba(255,255,255,.7);box-shadow:0 20px 60px rgba(0,20,30,.35)}
+.steps{list-style:none} .steps li{padding:7px 0 7px 26px;position:relative;font-size:13px}
+.steps li:before{content:'○';position:absolute;left:4px;color:var(--muted)}
+.steps li.done:before{content:'✓';color:var(--ok);font-weight:700}
+.steps li.run:before{content:'◌';color:var(--warn);animation:spin 1s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.bar{height:8px;background:rgba(14,116,144,.12);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--accent))}
+.toast{position:fixed;bottom:22px;right:22px;background:rgba(6,45,60,.88);color:#fff;padding:12px 18px;border-radius:12px;font-size:13px;z-index:99;box-shadow:0 8px 30px rgba(0,0,0,.3);display:none;backdrop-filter:blur(12px)}
+.svg-chart{width:100%}
+.locked{padding:60px;text-align:center;color:var(--muted)}
+.diffbox{background:#f5fafc;border:1px dashed var(--line);border-radius:10px;padding:10px;font-size:12px}
+.ver-active{background:#e2f5ea;color:var(--ok);font-weight:700;padding:2px 8px;border-radius:12px;font-size:11px}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+@media print{.sidebar,.no-print{display:none}.main{margin:0}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div class="toast" id="toast"></div>
+<script>
+/* ================= DATA ================= */
+const PALETTES = {
+ "True Winter":{sw:["#66008D","#000000","#A50046","#FF00A0","#000AC6"],fam:"Winter",und:"Cool"},
+ "True Summer":{sw:["#875F96","#B7AFB0","#AA415F","#DB8FA6","#6472A0"],fam:"Summer",und:"Cool"},
+ "True Spring":{sw:["#FCFB58","#E19673","#FF304B","#FF967D","#4EFD67"],fam:"Spring",und:"Warm"},
+ "True Autumn":{sw:["#9B710B","#4B2819","#932516","#F24C03","#265E25"],fam:"Autumn",und:"Warm"},
+ "Cool":{sw:["#8535A3","#464141","#B9215C","#ED4D9A","#3D429A"],fam:"Winter/Summer",und:"Cool"},
+ "Warm":{sw:["#E9BA47","#713F29","#F42E24","#DC6F39","#5BBA4F"],fam:"Autumn/Spring",und:"Warm"},
+ "Deep":{sw:["#551455","#3C141E","#8C002F","#6E002D","#073342"],fam:"Winter/Autumn",und:"Leans cool"},
+ "Bright":{sw:["#F000FA","#46000F","#D20046","#FF3F7F","#00AAAA"],fam:"Spring/Winter",und:"Leans warm"},
+ "Light":{sw:["#E4DBD3","#E13750","#FAADAD","#82D9DC"],fam:"Spring/Summer",und:"Leans warm"},
+ "Muted":{sw:["#5A4646","#A53C50","#CD737D","#3A5D68"],fam:"Autumn/Summer",und:"Leans cool"}
+};
+const PAL_NAMES = Object.keys(PALETTES);
+const HAIR = ["Dark Blonde","Blonde","Light Blonde","Very Light Blonde","Lightest Blonde","Light Brown","Brown","Dark Brown","Darkest Brown","Black","Obvious Red Hair","I Do Not Know"];
+const FITZ = ["I","II","III","IV","V","VI"];
+/* canonical rule-out tables */
+function level1(hair){
+  const blonde=["Dark Blonde","Blonde","Light Blonde","Very Light Blonde","Lightest Blonde"];
+  if(blonde.includes(hair)) return ["True Spring","True Summer","Light"];
+  if(hair==="Light Brown") return ["True Spring","True Summer","Light","Warm"];
+  if(hair==="Brown") return ["True Autumn","True Spring","True Summer","Warm","Muted"];
+  if(["Dark Brown","Darkest Brown","Black"].includes(hair)) return PAL_NAMES.filter(p=>p!=="Light");
+  if(hair==="Obvious Red Hair") return ["True Spring","True Autumn","Warm"];
+  return [...PAL_NAMES];
+}
+function level2(fz){
+  if(["V","VI"].includes(fz)) return PAL_NAMES.filter(p=>!["True Summer","True Spring","Light"].includes(p));
+  if(["III","IV"].includes(fz)) return PAL_NAMES.filter(p=>p!=="Light");
+  return [...PAL_NAMES];
+}
+function candidates(hair,fz){const a=level1(hair),b=level2(fz);return a.filter(p=>b.includes(p));}
+
+const ENGINE = {mode:"multi", strategy:"Weighted majority vote", primary:"claude"}; /* admin-configured; analysts cannot change */
+const MODELS = [
+ {id:"gpt5",name:"OpenAI GPT-5",type:"Commercial",on:true,weight:1.0,acc:93.1,lat:"3.2s",train:"Fine-tune API + prompt distillation"},
+ {id:"claude",name:"Anthropic Claude",type:"Commercial",on:true,weight:1.1,acc:94.6,lat:"2.8s",train:"Prompt distillation + correction retrieval"},
+ {id:"llama4",name:"Llama 4 70B (self-hosted)",type:"Open source",on:true,weight:0.9,acc:88.4,lat:"5.1s",train:"SFT + DPO weight updates"},
+ {id:"kimi",name:"Kimi K2 (self-hosted)",type:"Open source",on:false,weight:0.8,acc:85.2,lat:"6.0s",train:"SFT + DPO weight updates"}
+];
+const SKIN = {a:"#f3d9c4",b:"#e8b98d",c:"#c98a5b",d:"#9c6238",e:"#6e4226",f:"#4a2c18"};
+function face(tone){return `<svg viewBox="0 0 100 120"><ellipse cx="50" cy="60" rx="38" ry="48" fill="${tone}"/><ellipse cx="36" cy="52" rx="5" ry="3.4" fill="#3a2a20"/><ellipse cx="64" cy="52" rx="5" ry="3.4" fill="#3a2a20"/><path d="M30 42 q6 -5 13 -2" stroke="#3a2a20" stroke-width="2.4" fill="none"/><path d="M57 40 q7 -3 13 2" stroke="#3a2a20" stroke-width="2.4" fill="none"/><path d="M50 55 q-3 12 0 16 q2 2 5 1" stroke="rgba(0,0,0,.25)" stroke-width="2" fill="none"/><path d="M38 90 q12 9 24 0" stroke="#8c4a44" stroke-width="3.4" fill="none" stroke-linecap="round"/></svg>`;}
+
+const PROMPT_A_SEED = `ROLE: Expert virtual colour analyst. Determine which one of ten palettes harmonizes with the person's natural colouring.\n\nFIXED PRINCIPLES: Eyes are hypothesis only. Hair darkness at 17-20 is most reliable. Never trust user self-reported blushing. Deterministic rule-outs always win.\n\nPHASE A: Validate image (face-only crop, even lighting, no makeup/colour cast).\nPHASE B: Level 1 hair rule-outs; Level 2 Fitzpatrick rule-outs; intersect -> candidate set. Level 3 earthy check (Fitz I-IV, prior toward Autumn family). Level 4 flush/blush (Fitz I-III, image-derived, weak signal).\nPHASE C: Eye hypothesis (non-binding).\nPHASE D: Drape comparison - Step 1 Cool vs Warm, Step 2 home season, Step 3 flow. Judge 7 criteria: facial details, skin colour, skin consistency, jaw line, eyes, focus, balance.\nPHASE E: Corroborate with skin characteristics per palette.\nPHASE F: Output undertone, home season, flow, confidence, evidence a-d. Result MUST be within candidate set.`;
+const PROMPT_B_SEED = `ROLE: Independent audit reviewer. Recompute all deterministic layers; re-judge all drape steps.\n\nCHECK 1 input/crop integrity. CHECK 2 rule-out recomputation (result must be in candidate set - CRITICAL if not). CHECK 3 logic chain (undertone<->season<->flow). CHECK 4 evidence quality (>=3 of 7 criteria cited per step; eyes never eliminate). CHECK 5 skin corroboration. CHECK 6 completeness & confidence calibration. CHECK 7 repeatability (identical inputs -> identical result).\n\nVERDICT: APPROVE / REVISE / REJECT. Escalate to human on empty candidate set, step 1-2 disagreement, or Low confidence.`;
+
+let DB = {
+ session:null,
+ analyses:[
+  mk(1041,"Elena Marchetti","2026-07-24","Blonde","II","True Summer","Approved","True Summer",94,"a","Cool","Summer","v1.3",["claude","gpt5","llama4"],"Muted complexion, rose-ivory; taupe freckles visible.","Expert: agree — classic soft rose complexion. Approved."),
+  mk(1040,"Priya Nair","2026-07-24","Black","IV","Deep","Approved","Deep",91,"c","Cool (leans)","Winter","v1.3",["claude","gpt5"],"Rich contrast; face lifts on deep column, greys on light.","Expert: correct. Deep confirmed on overlays."),
+  mk(1039,"Sofia Lindqvist","2026-07-23","Light Blonde","I","True Spring","Corrected","Light",88,"a","Warm (leans)","Spring","v1.3",["gpt5","llama4"],"High cheek colour, translucent; blonde rule-outs applied.","Expert: overlays show softening on Light, True Spring too intense at jawline. Corrected to Light."),
+  mk(1038,"Amara Okafor","2026-07-22","Darkest Brown","VI","True Winter","Approved","True Winter",96,"f","Cool","Winter","v1.3",["claude","gpt5","llama4"],"Cool black-brown skin, reflective quality; eyes sparkle on Winter column.","Expert: textbook True Winter. Approved."),
+  mk(1037,"Mei-Ling Chen","2026-07-22","Dark Brown","III","Bright","Pending Review",null,83,"b","Leans warm","Winter","v1.3",["claude","llama4"],"Winter common for Asian background; bright column lifts focus to eyes.",null),
+  mk(1036,"Ciara O'Brien","2026-07-21","Obvious Red Hair","II","True Autumn","Approved","True Autumn",95,"a","Warm","Autumn","v1.2",["claude","gpt5"],"Red-orange-brown freckling dense; earthy check strongly positive.","Expert: unmistakable True Autumn."),
+  mk(1035,"Fatima Al-Rashid","2026-07-20","Dark Brown","IV","Muted","Pending Review",null,79,"c","Leans cool","Summer","v1.2",["gpt5","llama4"],"Split at step 3 between Muted and Cool; melasma noted.",null),
+  mk(1034,"Johan Petersen","2026-07-19","Light Brown","II","True Summer","Corrected","True Spring",81,"a","Cool→Warm","Summer→Spring","v1.2",["llama4"],"Single model run; step 1 judged cool.","Expert: undertone wrong — jaw drops on cool column. Peaches & cream skin. Corrected to True Spring; correction memory updated."),
+  mk(1033,"Rosa Delgado","2026-07-18","Brown","III","Warm","Approved","Warm",90,"b","Warm","Autumn","v1.2",["claude","gpt5","llama4"],"Golden beige; blend of Autumn/Spring characteristics.","Expert: agree with Warm."),
+  mk(1032,"Yuki Tanaka","2026-07-17","Black","III","True Winter","Needs Human Review",null,58,"b","Cool","Winter","v1.1",["gpt5"],"Low confidence: split drape at step 2; escalated per audit rules.",null),
+  mk(1031,"Grace Mwangi","2026-07-16","Black","V","True Autumn","Approved","True Autumn",92,"e","Warm","Autumn","v1.1",["claude","llama4"],"Golden black complexion; V/VI rule-outs applied.","Expert: approved with comments — beautiful harmony on autumn column."),
+  mk(1030,"Hannah Weiss","2026-07-15","Very Light Blonde","I","Light","Approved","Light",89,"a","Leans warm","Spring","v1.1",["claude","gpt5"],"Only 3 candidates after hair rule-out; light column diminishes details.","Expert: agree.")
+ ],
+ corrections:[
+  {id:1039,palette:"Light",note:"True Spring too intense at jawline; Light softens details.",date:"2026-07-23",by:"colour.expert@sparkleme.app"},
+  {id:1034,palette:"True Spring",note:"Undertone warm not cool. Peaches & cream complexion.",date:"2026-07-19",by:"colour.expert@sparkleme.app"}
+ ],
+ prompts:{
+  analysis:{active:"v1.3",versions:[
+    {v:"v1.0",date:"2026-05-02",by:"Prabhu",note:"Initial port of expert method",acc:78,body:PROMPT_A_SEED.slice(0,400)+"..."},
+    {v:"v1.1",date:"2026-05-28",by:"Colour Expert",note:"Added earthy-complexion guardrails (Level 3)",acc:84,body:PROMPT_A_SEED.slice(0,600)+"..."},
+    {v:"v1.2",date:"2026-06-20",by:"Colour Expert",note:"7-criteria drape rubric made explicit",acc:91,body:PROMPT_A_SEED},
+    {v:"v1.3",date:"2026-07-10",by:"Prabhu",note:"Hard constraint: result must be inside candidate set",acc:96,body:PROMPT_A_SEED}
+  ]},
+  audit:{active:"v1.1",versions:[
+    {v:"v1.0",date:"2026-06-01",by:"Prabhu",note:"Initial audit checklist",acc:null,body:PROMPT_B_SEED.slice(0,300)+"..."},
+    {v:"v1.1",date:"2026-07-10",by:"Colour Expert",note:"Added repeatability check 7 + escalation rules",acc:null,body:PROMPT_B_SEED}
+  ]}
+ },
+ users:[
+  {name:"Prabhu Balakrishnan",email:"prabhu.balakarishnan@sharpmindlabs.com",role:"Admin",status:"Active"},
+  {name:"Colour Expert",email:"colour.expert@sparkleme.app",role:"Colour Analysis Expert",status:"Active"},
+  {name:"Aisha Verma",email:"aisha.v@sparkleme.app",role:"Colour Analyst",status:"Active"},
+  {name:"Ops Bot",email:"ops@sparkleme.app",role:"Viewer",status:"Suspended"}
+ ],
+ jobs:[
+  {id:"FT-2026-07-21",model:"Llama 4 70B",kind:"DPO preference tuning",examples:212,status:"Completed",delta:"+2.3% accuracy"},
+  {id:"FT-2026-07-14",model:"Kimi K2",kind:"SFT on corrected outputs",examples:180,status:"Completed",delta:"+1.8% accuracy"},
+  {id:"FT-2026-07-25",model:"OpenAI GPT-5",kind:"Fine-tune API job",examples:236,status:"Running",delta:"—"},
+  {id:"RT-continuous",model:"All models",kind:"Real-time correction memory (instant layer)",examples:2,status:"Live",delta:"100% on reruns"}
+ ]
+};
+function mk(id,name,date,hair,fz,ai,status,expert,conf,tone,und,season,pv,models,why,expertNote){
+ return {id,name,date,hair,fz,ai,status,expert,conf,tone,und,season,pv,models,why,expertNote,cands:candidates(hair,fz)};
+}
+/* ================= HELPERS ================= */
+const $=s=>document.querySelector(s);
+function toast(m){const t=$("#toast");t.textContent=m;t.style.display="block";setTimeout(()=>t.style.display="none",2800);}
+/* role permissions: Analyst runs & submits; Expert reviews/refines/finalizes + can run end-to-end; Admin everything */
+function isExpert(){return ["Admin","Colour Analysis Expert"].includes(DB.session.role);}
+function isAdmin(){return DB.session.role==="Admin";}
+function esc(s){return (s||"").replace(/</g,"&lt;");}
+function statusChip(s){
+ const map={"Approved":"ok","Pending Review":"warn","Corrected":"info","Needs Human Review":"bad","Running":"gray"};
+ return `<span class="chip ${map[s]||'plain'}">${s}</span>`;
+}
+function swatches(p){return `<div class="swatch-row">${PALETTES[p].sw.map(c=>`<i style="background:${c}"></i>`).join("")}</div>`;}
+function palCard(p,a,rec){
+ const sw=PALETTES[p].sw; const seg=100/sw.length;
+ const bg=`linear-gradient(90deg,${sw.map((c,i)=>`${c} ${i*seg}% ${(i+1)*seg}%`).join(",")})`;
+ return `<div class="pal-card ${rec?'rec':''}" style="background:${bg}" title="${p}">
+   ${rec?'<span class="badge-rec">★ RECOMMENDED</span>':''}
+   ${face(SKIN[a.tone])}
+   <div class="pal-name">${p}</div></div>`;
+}
+function barSVG(data,labels,color){
+ const max=Math.max(...data)*1.15,w=560,h=150,bw=w/data.length;
+ let s=`<svg class="svg-chart" viewBox="0 0 ${w} ${h+24}">`;
+ data.forEach((d,i)=>{const bh=d/max*h;
+  s+=`<rect x="${i*bw+10}" y="${h-bh}" width="${bw-20}" height="${bh}" rx="5" fill="${color}"/>
+      <text x="${i*bw+bw/2}" y="${h-bh-6}" font-size="11" text-anchor="middle" fill="#555">${d}</text>
+      <text x="${i*bw+bw/2}" y="${h+16}" font-size="10.5" text-anchor="middle" fill="#888">${labels[i]}</text>`;});
+ return s+"</svg>";
+}
+/* ================= ROUTER ================= */
+function nav(h){location.hash=h;}
+window.addEventListener("hashchange",render);
+function layout(page,content){
+ let links=[["#/dashboard","▦","Dashboard"],["#/analyses","≣","Analyses"],["#/new","＋","Start Analysis"]];
+ if(isExpert()) links.push(["#/settings","⚙","Settings"]);
+ if(isAdmin()) links.push(["#/admin","♛","Admin"]);
+ return `<div class="app"><div class="sidebar">
+  <div class="logo">✨ Sparkle<span>Me</span></div>
+  <div class="nav">${links.map(l=>`<a href="${l[0]}" class="${page===l[0]?'active':''}"><span class="ico">${l[1]}</span>${l[2]}</a>`).join("")}</div>
+  <div class="me"><b>${DB.session.name}</b>${DB.session.role}<br><span class="muted">${DB.session.email}</span>
+   <button class="gray sm" onclick="logout()">Sign out</button></div>
+ </div><div class="main">${content}</div></div>`;
+}
+function logout(){DB.session=null;nav("#/login");}
+/* ================= PAGES ================= */
+function pgLogin(){
+ return `<div class="login-wrap"><div class="login-card">
+  <div class="logo" style="color:var(--ink);font-size:24px;padding:0 0 6px">✨ Sparkle<span>Me</span></div>
+  <p class="muted mb">Virtual colour analysis platform</p>
+  <div class="field"><label>Email</label><input id="lg-e" value="prabhu.balakarishnan@sharpmindlabs.com"></div>
+  <div class="field"><label>Password</label><input id="lg-p" type="password" value="demo1234"></div>
+  <div class="field"><label>Sign in as (demo)</label><select id="lg-r"><option>Admin</option><option>Colour Analysis Expert</option><option>Colour Analyst</option></select></div>
+  <button style="width:100%" onclick="doLogin()">Sign in</button>
+  <p class="small muted mt" style="text-align:center">SSO · Forgot password · Request access</p>
+ </div></div>`;
+}
+function doLogin(){
+ const r=$("#lg-r").value;
+ const names={"Admin":"Prabhu Balakrishnan","Colour Analysis Expert":"Colour Expert","Colour Analyst":"Aisha Verma"};
+ DB.session={email:$("#lg-e").value,role:r,name:names[r]};
+ nav("#/dashboard");
+}
+function pgDashboard(){
+ const A=DB.analyses, total=A.length, pend=A.filter(a=>a.status==="Pending Review").length;
+ const done=A.filter(a=>["Approved","Corrected"].includes(a.status));
+ const acc=Math.round(done.filter(a=>a.status==="Approved").length/done.length*100);
+ const pv=DB.prompts.analysis.versions;
+ return layout("#/dashboard",`
+  <div class="row sp mb"><div><h1>Dashboard</h1><span class="muted">Analysis volume & accuracy overview</span></div>
+  <button onclick="nav('#/new')">＋ New Analysis</button></div>
+  <div class="grid g4">
+   <div class="card kpi"><div class="lbl">Total analyses</div><div class="num">${total+236}</div><div class="sub up">▲ 18% vs last month</div></div>
+   <div class="card kpi"><div class="lbl">This week</div><div class="num">${total}</div><div class="sub up">▲ 3 vs prior week</div></div>
+   <div class="card kpi"><div class="lbl">Pending expert review</div><div class="num">${pend+1}</div><div class="sub muted">oldest: 2 days</div></div>
+   <div class="card kpi"><div class="lbl">Expert approval rate</div><div class="num">${acc}%</div><div class="sub up">first-pass accuracy, prompt ${DB.prompts.analysis.active}</div></div>
+  </div>
+  <div class="grid g2">
+   <div class="card"><h2>Accuracy by prompt version</h2><p class="small muted mb">First-pass expert approval rate per analysis-prompt version (n = ${done.length+236} reviewed)</p>
+    ${barSVG(pv.map(x=>x.acc),pv.map(x=>x.v),"#0e7490")}</div>
+   <div class="card"><h2>Analysis volume — last 8 weeks</h2><p class="small muted mb">Completed analyses per week</p>
+    ${barSVG([18,22,25,31,28,36,41,47],["W1","W2","W3","W4","W5","W6","W7","W8"],"#00b4d8")}</div>
+  </div>
+  <div class="grid g2">
+   <div class="card"><h2>Model accuracy (expert-verified)</h2>
+    ${MODELS.map(m=>`<div class="row sp" style="margin-bottom:8px"><span style="width:200px">${m.name} <span class="chip ${m.on?'ok':'gray'}">${m.on?'on':'off'}</span></span>
+      <div class="bar" style="flex:1"><i style="width:${m.acc}%"></i></div><b style="width:52px;text-align:right">${m.acc}%</b></div>`).join("")}
+    <p class="small muted">Consensus (weighted vote) accuracy: <b>96.2%</b></p></div>
+   <div class="card"><h2>Recent analyses</h2>
+    ${A.slice(0,5).map(a=>`<div class="row sp" style="padding:7px 0;border-bottom:1px solid var(--line)">
+      <a href="#/analysis/${a.id}"><b>#${a.id}</b> ${a.name}</a>
+      <span>${a.ai?`<span class="chip plain">${a.ai}</span>`:""} ${statusChip(a.status)}</span></div>`).join("")}
+    <a class="small" href="#/analyses">View all →</a></div>
+  </div>`);
+}
+let listState={q:"",st:"All",pal:"All",sort:"date",dir:-1};
+function pgList(){
+ let A=[...DB.analyses];
+ const s=listState;
+ if(s.q) A=A.filter(a=>(a.name+" "+a.id).toLowerCase().includes(s.q.toLowerCase()));
+ if(s.st!=="All") A=A.filter(a=>a.status===s.st);
+ if(s.pal!=="All") A=A.filter(a=>a.ai===s.pal||a.expert===s.pal);
+ A.sort((x,y)=>{let k=s.sort;let a=x[k],b=y[k];if(k==="date"){a=x.date;b=y.date}return (a>b?1:-1)*s.dir;});
+ return layout("#/analyses",`
+  <div class="row sp mb"><div><h1>Analyses</h1><span class="muted">${A.length} records</span></div><button onclick="nav('#/new')">＋ New Analysis</button></div>
+  <div class="card"><div class="row mb">
+   <input style="width:260px" placeholder="Search name or ID…" value="${esc(s.q)}" oninput="listState.q=this.value;render()">
+   <select style="width:180px" onchange="listState.st=this.value;render()">${["All","Pending Review","Approved","Corrected","Needs Human Review"].map(o=>`<option ${s.st===o?'selected':''}>${o}</option>`).join("")}</select>
+   <select style="width:170px" onchange="listState.pal=this.value;render()"><option>All</option>${PAL_NAMES.map(p=>`<option ${s.pal===p?'selected':''}>${p}</option>`).join("")}</select>
+   <button class="ghost sm" onclick="listState={q:'',st:'All',pal:'All',sort:'date',dir:-1};render()">Reset</button>
+  </div>
+  <table><tr>
+   <th onclick="srt('id')">ID ⇅</th><th onclick="srt('name')">Client ⇅</th><th onclick="srt('date')">Date ⇅</th>
+   <th>Inputs</th><th>AI result</th><th>Expert result</th><th onclick="srt('conf')">Conf. ⇅</th><th>Status</th></tr>
+   ${A.map(a=>`<tr class="click" onclick="nav('#/analysis/${a.id}')">
+    <td class="b">#${a.id}</td><td>${a.name}</td><td>${a.date}</td>
+    <td class="small muted">${a.hair} · Fitz ${a.fz}</td>
+    <td>${a.ai?`<span class="chip plain">${a.ai}</span>`:"—"}</td>
+    <td>${a.expert?`<span class="chip info">${a.expert}</span>`:"—"}</td>
+    <td>${a.conf}%</td><td>${statusChip(a.status)}</td></tr>`).join("")}
+  </table></div>`);
+}
+function srt(k){listState.sort===k?listState.dir*=-1:(listState.sort=k,listState.dir=1);render();}
+function pgDetail(id){
+ const a=DB.analyses.find(x=>x.id==id); if(!a) return layout("#/analyses","<div class='card'>Not found</div>");
+ const rec=a.expert||a.ai;
+ return layout("#/analyses",`
+  <div class="row sp mb no-print"><div><h1>Analysis #${a.id} — ${a.name}</h1>
+   <span class="muted">${a.date} · prompt ${a.pv} · models: ${a.models.map(m=>MODELS.find(x=>x.id===m).name.split(" ")[0]).join(", ")}</span></div>
+   <div class="row">
+    <button class="gray" onclick="toast('Report emailed to ${a.name.split(' ')[0].toLowerCase()}@client.example ✉')">✉ Email Report</button>
+    <button class="gray" onclick="window.print()">⬇ Export Report (PDF)</button>
+    ${isExpert()?(a.status==="Pending Review"||a.status==="Needs Human Review"?`
+      <button class="green" onclick="approve(${a.id})">✓ Approve & Finalize</button>
+      <button class="amber" onclick="nav('#/correct/${a.id}')">✎ Correct / Refine</button>`:
+      `<button class="ghost" onclick="nav('#/correct/${a.id}')">↻ Rerun / Refine</button>`):
+      (a.status==="Pending Review"||a.status==="Needs Human Review"?`<span class="chip warn">Awaiting expert review — read only</span>`:`<span class="chip ok">Finalized by expert</span>`)}
+   </div></div>
+  <div class="grid" style="grid-template-columns:290px 1fr">
+   <div>
+    <div class="card"><h3>Result</h3>
+     <div class="row" style="gap:14px"><div style="width:74px">${face(SKIN[a.tone])}</div>
+      <div><div style="font-size:19px;font-weight:700">${rec}</div>${swatches(rec)}
+      <div class="small mt">${statusChip(a.status)} <span class="chip gray">${a.conf}% conf.</span></div></div></div>
+     <table class="mt small"><tr><td class="muted">Undertone</td><td class="b">${a.und}</td></tr>
+      <tr><td class="muted">Home season</td><td class="b">${a.season}</td></tr>
+      <tr><td class="muted">Flow result</td><td class="b">${rec}</td></tr></table>
+    </div>
+    <div class="card"><h3>Inputs</h3><table class="small">
+     <tr><td class="muted">Hair @ 17–20</td><td class="b">${a.hair}</td></tr>
+     <tr><td class="muted">Fitzpatrick</td><td class="b">Type ${a.fz}</td></tr></table>
+     ${a.userNotes?`<h3 class="mt">Client-provided details</h3><p class="small">${esc(a.userNotes)}</p><p class="small muted">(weak signal — never overrides rule-outs)</p>`:""}
+     <h3 class="mt">Candidate set after rule-outs</h3>
+     ${a.cands.map(c=>`<span class="chip ${c===rec?'ok':'plain'}">${c}</span>`).join("")}
+     <p class="small muted mt">Level 1 (hair) ∩ Level 2 (Fitzpatrick). Result is constrained to this set.</p>
+    </div>
+    <div class="card"><h3>Model votes</h3>
+     ${a.models.map((m,i)=>{const M=MODELS.find(x=>x.id===m);const vote=i===a.models.length-1&&a.expert&&a.expert!==a.ai?a.ai:rec;
+      return `<div class="row sp small" style="padding:5px 0"><span>${M.name}</span><span class="chip ${vote===rec?'ok':'warn'}">${vote}</span></div>`;}).join("")}
+     <p class="small muted">Consensus: weighted vote → <b>${a.ai}</b></p></div>
+   </div>
+   <div>
+    <div class="card"><h2>Overlay on all palettes</h2>
+     <p class="small muted mb">Cropped face composited on each palette. Click a card to zoom (prototype).</p>
+     <div class="pal-grid">${PAL_NAMES.map(p=>palCard(p,a,p===rec)).join("")}</div></div>
+    <div class="card"><h2>Why ${rec}?</h2>
+     <p class="mb">${a.why}</p>
+     <table class="small">
+      <tr><td class="muted" style="width:190px">a) Eyes (hypothesis only)</td><td>Showed potential for ${a.season}; pattern noted, no season ruled out.</td></tr>
+      <tr><td class="muted">b) Hair consistency</td><td>${a.hair} at 17–20 is consistent with ${rec}; rule-outs eliminated ${10-a.cands.length} palettes.</td></tr>
+      <tr><td class="muted">c) Skin characteristics</td><td>Observed complexion matches the ${rec} profile (see report).</td></tr>
+      <tr><td class="muted">d) Drape steps</td><td>Step 1: ${a.und}. Step 2: ${a.season}. Step 3: ${rec} — details diminished, healthy glow, jaw lifted, eyes brighter, focus up, harmonious (criteria 1,2,4,5,6,7).</td></tr>
+     </table>
+     ${a.expertNote?`<div class="diffbox mt"><b>Expert review:</b> ${a.expertNote}</div>`:""}
+    </div>
+   </div>
+  </div>`);
+}
+function approve(id){
+ const a=DB.analyses.find(x=>x.id==id);a.status="Approved";a.expert=a.ai;
+ a.expertNote="Expert: approved via review queue. "+(prompt("Approval comments:","Overlays confirm recommendation.")||"");
+ toast("Approved ✓ — stored as positive training example");render();
+}
+function pgCorrect(id){
+ if(!isExpert()) return layout("#/analyses","<div class='card locked'>🔒 Colour Analysis Expert role required.<br><span class='small'>Analysts submit for review; only experts refine and finalize results.</span></div>");
+ const a=DB.analyses.find(x=>x.id==id); if(!a) return layout("#/analyses","<div class='card'>Not found</div>");
+ return layout("#/analyses",`
+  <div class="mb"><h1>Correct / Refine / Rerun — #${a.id} ${a.name}</h1>
+  <span class="muted">Expert feedback feeds the instant correction memory and the background training pipeline</span></div>
+  <div class="grid g2">
+   <div class="card"><h2>Current AI result</h2>
+    <div class="row"><span class="chip plain" style="font-size:14px">${a.ai}</span><span class="chip gray">${a.conf}% conf.</span>${statusChip(a.status)}</div>
+    <p class="small muted mt mb">Candidate set: ${a.cands.join(", ")}</p>
+    <div class="pal-grid" style="grid-template-columns:repeat(5,1fr)">${a.cands.map(p=>palCard(p,a,p===(a.expert||a.ai))).join("")}</div>
+   </div>
+   <div class="card"><h2>Expert assessment</h2>
+    <div class="field"><label>Verdict</label>
+     <select id="cx-v" onchange="$('#cx-pal-wrap').style.display=this.value==='Incorrect'?'block':'none'">
+      <option>Correct — approve with comments</option><option ${a.expert&&a.expert!==a.ai?'selected':''}>Incorrect</option></select></div>
+    <div id="cx-pal-wrap" style="display:${a.expert&&a.expert!==a.ai?'block':'none'}">
+     <div class="field"><label>Correct palette (from candidate set)</label>
+      <select id="cx-pal">${a.cands.map(p=>`<option ${p===a.expert?'selected':''}>${p}</option>`).join("")}</select></div>
+    </div>
+    <div class="field"><label>Comments (visible on report & stored for training)</label>
+     <textarea id="cx-note" rows="3">${esc(a.expertNote||"")}</textarea></div>
+    <div class="field"><label>Additional prompt influence (injected into analysis prompt for this case class)</label>
+     <textarea id="cx-inf" rows="3" placeholder="e.g. For translucent, high-cheek-colour blondes prefer Light over True Spring when jawline drops on the bright column…"></textarea></div>
+    <div class="row">
+     <button class="green" onclick="saveCorrection(${a.id})">💾 Save feedback (instant)</button>
+     <button onclick="rerun(${a.id})">↻ Rerun analysis now</button>
+    </div>
+    <p class="small muted mt">Saving writes to: ① real-time correction memory (takes effect immediately, 1st → nth rerun) ② feedback store → SFT/DPO for open-source models, fine-tune API + prompt distillation for commercial models.</p>
+   </div>
+  </div>
+  <div class="card"><h2>Rerun log</h2><div id="rerun-log" class="mono muted">No rerun yet in this session.</div></div>`);
+}
+function saveCorrection(id){
+ const a=DB.analyses.find(x=>x.id==id);
+ const bad=$("#cx-v").value==="Incorrect";
+ a.expertNote=$("#cx-note").value;
+ if(bad){a.expert=$("#cx-pal").value;a.status="Corrected";
+  DB.corrections.unshift({id:a.id,palette:a.expert,note:$("#cx-inf").value||a.expertNote,date:"2026-07-26",by:DB.session.email});
+  toast("Correction saved → instant memory updated + queued for model training");
+ }else{a.expert=a.ai;a.status="Approved";toast("Approved with comments → positive training example stored");}
+ render();
+}
+function rerun(id){
+ const a=DB.analyses.find(x=>x.id==id);
+ const hit=DB.corrections.find(c=>c.id===a.id);
+ const log=$("#rerun-log");
+ const lines=[
+  "▶ New analysis started for identical inputs (image hash 9f3ac…, "+a.hair+", Fitz "+a.fz+")",
+  "① Rule-outs recomputed → candidates: ["+a.cands.join(", ")+"]",
+  "② Correction memory lookup (image-embedding + inputs)… "+(hit?"HIT — expert-verified result found ("+hit.date+")":"MISS — no prior expert correction"),
+  hit?"③ Authoritative override applied → result: "+hit.palette+" (expert note injected as context)":"③ Multi-model drape analysis → consensus: "+a.ai,
+  "④ Audit pass → APPROVE (checks 1–7 green)",
+  "✔ Result: "+(hit?hit.palette:a.ai)+" — deterministic; identical output guaranteed on nth rerun"
+ ];
+ log.innerHTML="";let i=0;
+ const t=setInterval(()=>{log.innerHTML+=lines[i]+"<br>";i++;if(i>=lines.length){clearInterval(t);toast("Rerun complete — correct on 1st attempt "+(hit?"(instant feedback verified)":""));}},420);
+}
+/* ---------- Start Analysis ---------- */
+let newState={hair:"I Do Not Know",fz:"III",tone:"b",running:false,step:0};
+function engineModels(){return ENGINE.mode==="single"?[ENGINE.primary]:MODELS.filter(m=>m.on).map(m=>m.id);}
+function pgNew(){
+ const n=newState;
+ const cands=candidates(n.hair,n.fz);
+ return layout("#/new",`
+  <div class="mb"><h1>Start Analysis</h1><span class="muted">Upload a face photo and provide the two self-report inputs</span></div>
+  <div class="grid g2">
+   <div class="card">
+    <h2>1 · Inputs</h2>
+    <div class="field"><label>Face photo (auto-cropped to face only — no hair / neck / background)</label>
+     <input type="file" accept="image/*" onchange="toast('Image received — face detected & cropped ✓')">
+     <div class="row mt"><div style="width:84px">${face(SKIN[n.tone])}</div>
+      <div class="small muted">Demo face preview.<br>Skin tone (demo):
+       <select style="width:120px" onchange="newState.tone=this.value;render()">${Object.keys(SKIN).map(k=>`<option value="${k}" ${n.tone===k?'selected':''}>Tone ${k.toUpperCase()}</option>`).join("")}</select></div></div></div>
+    <div class="field"><label>Natural hair colour at age 17–20 (most reliable check — be honest; use indoor-light photos from that period)</label>
+     <select onchange="newState.hair=this.value;render()">${HAIR.map(h=>`<option ${n.hair===h?'selected':''}>${h}</option>`).join("")}</select></div>
+    <div class="field"><label>Fitzpatrick skin type</label>
+     <select onchange="newState.fz=this.value;render()">${FITZ.map(f=>`<option ${n.fz===f?'selected':''}>Type ${f}</option>`).join("")}</select></div>
+    <div class="field"><label>Additional details — skin, hair, eyes (free form, optional)</label>
+     <textarea rows="3" oninput="newState.notes=this.value" placeholder="e.g. I flush easily; my hair showed reddish tints in sunlight; lots of freckles on my cheeks; eyes have a sunburst pattern around the pupil…">${esc(n.notes||"")}</textarea>
+     <p class="small muted" style="margin-top:4px">Passed to the analysis as supporting context. Per methodology, self-reported traits (e.g. blushing, eye pattern) are treated as weak signals and never override rule-outs or overlay comparisons.</p></div>
+    <div class="diffbox mb"><b>Engine (admin-configured):</b> ${ENGINE.mode==="single"?"Single model — "+MODELS.find(m=>m.id===ENGINE.primary).name:ENGINE.strategy+" across "+engineModels().map(id=>MODELS.find(m=>m.id===id).name.split(" ")[0]).join(", ")}
+     <span class="small muted">· managed under Admin → Model Configuration</span></div>
+    <button style="width:100%" ${n.running?'disabled':''} onclick="runAnalysis()">▶ Run analysis</button>
+   </div>
+   <div class="card">
+    <h2>Live rule-out preview</h2>
+    <p class="small muted mb">Deterministic layers update as you change inputs — the AI result will be constrained to this set.</p>
+    <h3>Level 1 — hair (${n.hair})</h3>${level1(n.hair).map(p=>`<span class="chip plain">${p}</span>`).join("")}
+    <h3 class="mt">Level 2 — Fitzpatrick (Type ${n.fz})</h3>${level2(n.fz).map(p=>`<span class="chip plain">${p}</span>`).join("")}
+    <h3 class="mt">Candidate set (intersection)</h3>
+    ${cands.length?cands.map(p=>`<span class="chip ok">${p}</span>`).join(""):'<span class="chip bad">EMPTY — conflicting inputs, human review required</span>'}
+    <h2 class="mt">Pipeline</h2>
+    <ul class="steps" id="pipe">
+     ${["Validate image & crop (face only)","Level 1–2 rule-outs → candidate set","Level 3 earthy / Level 4 flush checks (image-derived)","Overlay composites on all palettes","Drape Step 1 — Cool vs Warm","Drape Step 2 — Home season","Drape Step 3 — Flow","Correction-memory lookup (instant layer)","Multi-model consensus & audit pass"].map((s,i)=>`<li id="st${i}">${s}</li>`).join("")}
+    </ul>
+    <div id="run-result"></div>
+   </div>
+  </div>`);
+}
+function runAnalysis(){
+ const n=newState;const cands=candidates(n.hair,n.fz);
+ if(!cands.length){toast("Empty candidate set — CONFLICTING_INPUTS. Flagged for human review.");return;}
+ if(!engineModels().length){toast("No models enabled — ask an Admin to enable a model");return;}
+ n.running=true;
+ let i=0;
+ const t=setInterval(()=>{
+  if(i>0)document.getElementById("st"+(i-1)).className="done";
+  if(i<9){document.getElementById("st"+i).className="run";i++;}
+  else{clearInterval(t);n.running=false;
+   const seed=(n.hair.length*7+n.fz.charCodeAt(0)+n.tone.charCodeAt(0))%cands.length;
+   const res=cands[seed];const p=PALETTES[res];
+   const id=1042+DB.analyses.filter(x=>x.id>=1042).length;
+   DB.analyses.unshift(mk(id,"New Client","2026-07-26",n.hair,n.fz,res,"Pending Review",null,80+seed*3,n.tone,p.und,p.fam.split("/")[0],DB.prompts.analysis.active,engineModels(),
+    "Drape steps favoured "+res+": details diminished, healthy glow, focus drawn up to eyes; corroborated by skin characteristics.",null));
+   if(n.notes) DB.analyses[0].userNotes=n.notes;
+   $("#run-result").innerHTML=`<div class="diffbox mt"><b>✔ Recommended: ${res}</b> (${80+seed*3}% confidence) — ${isExpert()?"you can review & finalize it now (end-to-end)":"submitted to Colour Analysis Expert review queue"}.<br>
+    <button class="sm mt" onclick="nav('#/analysis/${id}')">Open analysis #${id} →</button></div>`;
+   toast(isExpert()?"Analysis complete — ready for your review & finalization":"Analysis complete → submitted for expert review");
+  }},450);
+}
+/* ---------- Settings ---------- */
+let setState={tab:"analysis",sel:null};
+function pgSettings(){
+ if(!isExpert()) return layout("#/settings","<div class='card locked'>🔒 Colour Analysis Expert or Admin role required to manage prompts.</div>");
+ const t=setState.tab, P=DB.prompts[t];
+ const sel=setState.sel||P.active;
+ const ver=P.versions.find(v=>v.v===sel);
+ return layout("#/settings",`
+  <div class="mb"><h1>Settings</h1><span class="muted">Prompts are version-controlled; only one active version per prompt. Changes are audited.</span></div>
+  <div class="tabbar">
+   <button class="${t==='analysis'?'on':''}" onclick="setState={tab:'analysis',sel:null};render()">Expert Analysis Prompt</button>
+   <button class="${t==='audit'?'on':''}" onclick="setState={tab:'audit',sel:null};render()">Audit Review Prompt</button>
+  </div>
+  <div class="grid" style="grid-template-columns:320px 1fr">
+   <div class="card"><h2>Version history</h2>
+    <table><tr><th>Ver</th><th>Date</th><th>Author</th><th>Acc.</th><th></th></tr>
+    ${P.versions.slice().reverse().map(v=>`<tr class="click" onclick="setState.sel='${v.v}';render()">
+     <td class="b">${v.v} ${v.v===P.active?'<span class="ver-active">ACTIVE</span>':''}</td>
+     <td class="small">${v.date}</td><td class="small">${v.by}</td><td class="small">${v.acc?v.acc+"%":"—"}</td><td></td></tr>`).join("")}
+    </table>
+    <p class="small muted mt">Accuracy = first-pass expert approval rate while that version was active.</p></div>
+   <div class="card">
+    <div class="row sp mb"><h2>${t==='analysis'?'Expert Analysis Prompt':'Audit Review Prompt'} — ${ver.v}</h2>
+     <div class="row">
+      ${ver.v!==P.active?`<button class="green sm" onclick="activateVer('${t}','${ver.v}')">Activate ${ver.v}</button>`:""}
+      <button class="sm" onclick="saveVer('${t}')">💾 Save as new version</button>
+     </div></div>
+    <p class="small muted mb"><b>Change note:</b> ${ver.note}</p>
+    <textarea id="pr-body" rows="18" class="mono">${esc(ver.body)}</textarea>
+    <div class="field mt"><label>Change note for new version</label><input id="pr-note" placeholder="What changed and why"></div>
+   </div>
+  </div>`);
+}
+function activateVer(t,v){DB.prompts[t].active=v;toast(v+" activated — takes effect on next analysis run");render();}
+function saveVer(t){
+ const P=DB.prompts[t];const n=P.versions.length;
+ const nv="v1."+(parseInt(P.versions[n-1].v.split(".")[1])+1);
+ P.versions.push({v:nv,date:"2026-07-26",by:DB.session.name,note:$("#pr-note").value||"(no note)",acc:null,body:$("#pr-body").value});
+ setState.sel=nv;toast("Saved as "+nv+" (not active until you activate it)");render();
+}
+/* ---------- Admin ---------- */
+let admTab="models";
+function pgAdmin(){
+ if(DB.session.role!=="Admin") return layout("#/admin","<div class='card locked'>🔒 Admin access required.<br><span class='small'>Sign in as Admin to manage models, users and training.</span></div>");
+ const tabs=[["models","Model Configuration"],["users","User Management"],["metrics","Metrics"],["train","Model Training Pipeline"]];
+ let body="";
+ if(admTab==="models") body=`
+  <div class="card"><h2>Execution mode</h2>
+   <p class="small muted mb">This configuration applies platform-wide. Analysts cannot choose models per analysis.</p>
+   <div class="row mb">
+    <div style="width:220px"><label>Mode</label>
+     <select onchange="ENGINE.mode=this.value;render()">
+      <option value="multi" ${ENGINE.mode==='multi'?'selected':''}>Multi-model consensus</option>
+      <option value="single" ${ENGINE.mode==='single'?'selected':''}>Single model</option></select></div>
+    ${ENGINE.mode==='multi'?`<div style="width:260px"><label>Consensus strategy</label>
+     <select onchange="ENGINE.strategy=this.value;toast('Strategy updated')">${["Weighted majority vote","Auditor-scored best output","Unanimity else escalate"].map(s=>`<option ${ENGINE.strategy===s?'selected':''}>${s}</option>`).join("")}</select></div>`
+    :`<div style="width:260px"><label>Primary model</label>
+     <select onchange="ENGINE.primary=this.value;toast('Primary model updated')">${MODELS.filter(m=>m.on).map(m=>`<option value="${m.id}" ${ENGINE.primary===m.id?'selected':''}>${m.name}</option>`).join("")}</select></div>`}
+    <div><label>&nbsp;</label><span class="chip info">Active: ${ENGINE.mode==='single'?MODELS.find(m=>m.id===ENGINE.primary).name:ENGINE.strategy+" · "+MODELS.filter(m=>m.on).length+" models"}</span></div>
+   </div></div>
+  <div class="card"><div class="row sp mb"><h2>Model registry</h2>
+   <button class="sm ghost" onclick="toast('Model registry: add endpoint, key, weight')">＋ Add model</button></div>
+   <table><tr><th>Model</th><th>Type</th><th>Status</th><th>Vote weight</th><th>Accuracy</th><th>Latency</th><th>Training path</th><th></th></tr>
+   ${MODELS.map((m,i)=>`<tr><td class="b">${m.name}</td><td>${m.type}</td>
+    <td><span class="chip ${m.on?'ok':'gray'}">${m.on?'Enabled':'Disabled'}</span></td>
+    <td><input style="width:64px" value="${m.weight}" onchange="MODELS[${i}].weight=parseFloat(this.value);toast('Weight updated')"></td>
+    <td>${m.acc}%</td><td>${m.lat}</td><td class="small">${m.train}</td>
+    <td><button class="sm gray" onclick="MODELS[${i}].on=!MODELS[${i}].on;render()">${m.on?'Disable':'Enable'}</button></td></tr>`).join("")}
+   </table>
+   <p class="small muted mt">Switchable centrally (single) or combined (consensus) — applies to all analyses. Deterministic layers run outside the models — identical for every engine.</p></div>`;
+ if(admTab==="users") body=`
+  <div class="card"><div class="row sp mb"><h2>Users</h2><button class="sm" onclick="addUser()">＋ Invite user</button></div>
+   <table><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th></th></tr>
+   ${DB.users.map((u,i)=>`<tr><td class="b">${u.name}</td><td>${u.email}</td>
+    <td><select style="width:190px" onchange="DB.users[${i}].role=this.value">${["Admin","Colour Analysis Expert","Colour Analyst","Viewer"].map(r=>`<option ${u.role===r?'selected':''}>${r}</option>`).join("")}</select></td>
+    <td><span class="chip ${u.status==='Active'?'ok':'gray'}">${u.status}</span></td>
+    <td><button class="sm gray" onclick="DB.users[${i}].status=DB.users[${i}].status==='Active'?'Suspended':'Active';render()">${u.status==='Active'?'Suspend':'Reactivate'}</button></td></tr>`).join("")}
+   </table></div>`;
+ if(admTab==="metrics") body=`
+  <div class="grid g2">
+   <div class="card"><h2>Expert approval rate by model</h2>
+    ${MODELS.map(m=>`<div class="row sp" style="margin-bottom:8px"><span style="width:210px">${m.name}</span>
+     <div class="bar" style="flex:1"><i style="width:${m.acc}%"></i></div><b style="width:52px;text-align:right">${m.acc}%</b></div>`).join("")}
+    <div class="row sp" style="margin-bottom:8px"><span style="width:210px" class="b">Consensus (production)</span><div class="bar" style="flex:1"><i style="width:96.2%"></i></div><b style="width:52px;text-align:right">96.2%</b></div></div>
+   <div class="card"><h2>Corrections & rerun consistency</h2>
+    ${barSVG([9,7,5,4,2,2,1,0],["W1","W2","W3","W4","W5","W6","W7","W8"],"#c0263a")}
+    <p class="small muted">Expert corrections per week (declining = models learning). Rerun-after-correction consistency: <b>100%</b> (instant layer).</p></div>
+  </div>
+  <div class="card"><h2>Audit outcomes (last 250)</h2>
+   <span class="chip ok">APPROVE 226</span><span class="chip warn">REVISE 17</span><span class="chip bad">REJECT 7</span>
+   <p class="small muted mt">Top failures: 4.2 drape disagreement (11), 5.2 skin-corroboration mismatch (7), 2.2 candidate-set breach (0 since prompt v1.3).</p></div>`;
+ if(admTab==="train") body=`
+  <div class="grid g2">
+   <div class="card"><h2>Feedback store</h2>
+    <div class="grid g3">
+     <div class="kpi"><div class="num">248</div><div class="lbl">approved examples</div></div>
+     <div class="kpi"><div class="num">30</div><div class="lbl">corrections</div></div>
+     <div class="kpi"><div class="num">${DB.corrections.length}</div><div class="lbl">live memory entries</div></div>
+    </div>
+    <h3 class="mt">Instant layer — correction memory (takes effect immediately)</h3>
+    <table><tr><th>Analysis</th><th>Corrected to</th><th>By</th><th>Date</th></tr>
+    ${DB.corrections.map(c=>`<tr><td><a href="#/analysis/${c.id}">#${c.id}</a></td><td><span class="chip info">${c.palette}</span></td><td class="small">${c.by}</td><td class="small">${c.date}</td></tr>`).join("")}
+    </table>
+    <p class="small muted mt">Every new analysis checks this memory (image embedding + inputs). Exact/near matches return the expert-verified result on the 1st and nth attempt.</p></div>
+   <div class="card"><h2>Background layer — training jobs</h2>
+    <table><tr><th>Job</th><th>Model</th><th>Method</th><th>Examples</th><th>Status</th><th>Δ</th></tr>
+    ${DB.jobs.map(j=>`<tr><td class="b small">${j.id}</td><td class="small">${j.model}</td><td class="small">${j.kind}</td><td>${j.examples}</td>
+     <td><span class="chip ${j.status==='Completed'?'ok':j.status==='Running'?'warn':'info'}">${j.status}</span></td><td class="small">${j.delta}</td></tr>`).join("")}
+    </table>
+    <div class="row mt"><button class="sm" onclick="toast('Fine-tune job queued: SFT+DPO on 30 corrections')">▶ Trigger training run</button>
+    <button class="sm ghost" onclick="toast('Golden-set regression: 48/50 passed — promote candidate?')">Run golden-set eval</button></div>
+    <p class="small muted mt">Open-source models: SFT + DPO weight updates. Commercial models: provider fine-tune APIs + prompt distillation + correction retrieval. Promotion gated on golden-set regression.</p></div>
+  </div>`;
+ return layout("#/admin",`
+  <div class="mb"><h1>Admin</h1><span class="muted">Models · users · metrics · training</span></div>
+  <div class="tabbar">${tabs.map(t=>`<button class="${admTab===t[0]?'on':''}" onclick="admTab='${t[0]}';render()">${t[1]}</button>`).join("")}</div>
+  ${body}`);
+}
+function addUser(){
+ const e=prompt("Invite email:","new.reviewer@sparkleme.app");
+ if(e){DB.users.push({name:e.split("@")[0],email:e,role:"Expert Reviewer",status:"Active"});toast("Invitation sent to "+e);render();}
+}
+/* ================= RENDER ================= */
+function render(){
+ const h=location.hash||"#/login";
+ const r=document.getElementById("root");
+ if(!DB.session){r.innerHTML=pgLogin();return;}
+ if(h.startsWith("#/analysis/")) r.innerHTML=pgDetail(h.split("/")[2]);
+ else if(h.startsWith("#/correct/")) r.innerHTML=pgCorrect(h.split("/")[2]);
+ else if(h==="#/analyses") r.innerHTML=pgList();
+ else if(h==="#/new") r.innerHTML=pgNew();
+ else if(h==="#/settings") r.innerHTML=pgSettings();
+ else if(h==="#/admin") r.innerHTML=pgAdmin();
+ else r.innerHTML=pgDashboard();
+}
+render();
+</script>
+</body>
+</html>
