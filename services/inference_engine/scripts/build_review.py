@@ -35,15 +35,23 @@ def img_dir(client_id):
 
 
 def thumbs(client_id):
+    import io
+    from PIL import Image
     d = img_dir(client_id)
     if not d:
         return ""
     imgs = sorted(p for p in d.iterdir() if p.suffix.lower() in {".jpg", ".jpeg", ".png"})[:5]
     out = []
     for p in imgs:
-        b64 = base64.b64encode(p.read_bytes()).decode()
-        mt = "jpeg" if p.suffix.lower() in {".jpg", ".jpeg"} else "png"
-        out.append(f'<img src="data:image/{mt};base64,{b64}" loading="lazy">')
+        try:
+            im = Image.open(p).convert("RGB")
+            im.thumbnail((520, 900))  # downscale for a lightweight page
+            buf = io.BytesIO()
+            im.save(buf, format="JPEG", quality=62)
+            b64 = base64.b64encode(buf.getvalue()).decode()
+        except Exception:
+            b64 = base64.b64encode(p.read_bytes()).decode()
+        out.append(f'<img src="data:image/jpeg;base64,{b64}" loading="lazy">')
     return '<div class="thumbs">' + "".join(out) + "</div>"
 
 
