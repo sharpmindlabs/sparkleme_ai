@@ -58,11 +58,19 @@ class AzureFoundryProvider:
         }
         if self._temperature is not None:
             body["temperature"] = float(self._temperature)
-        r = httpx.post(
-            self._url, params={"api-version": self._api_version},
-            headers={"api-key": self._key, "Content-Type": "application/json"},
-            json=body, timeout=self._timeout,
-        )
+        import time
+        max_retries = int(os.getenv("AZURE_MAX_RETRIES", "5"))
+        for attempt in range(max_retries + 1):
+            r = httpx.post(
+                self._url, params={"api-version": self._api_version},
+                headers={"api-key": self._key, "Content-Type": "application/json"},
+                json=body, timeout=self._timeout,
+            )
+            if r.status_code == 429 and attempt < max_retries:
+                wait = float(r.headers.get("retry-after") or (2 ** attempt))
+                time.sleep(min(wait, 30))
+                continue
+            break
         if r.status_code != 200:
             raise RuntimeError(f"Azure {self._model} HTTP {r.status_code}: {r.text[:300]}")
         data = r.json()
