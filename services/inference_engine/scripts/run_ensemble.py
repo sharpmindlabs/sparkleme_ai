@@ -17,7 +17,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 os.environ.setdefault("SPARKLEME_PROVIDER", "azure_foundry")
 from app.config import get_settings
-from app.engine import load_prompt, run_client, parse_result, _depth_hint
+from app.engine import load_prompt, run_client, parse_result, _depth_hint, _extract_json
 from app.images import load_client_images
 from app.providers.azure_foundry import AzureFoundryProvider
 from app.batch import load_goldenset, available_client_ids
@@ -33,6 +33,21 @@ def canonical_palette(text):
         return None
     got = extract_palettes(str(text))
     return got[0] if got else str(text).strip()
+
+
+def parse_flow_tolerant(raw):
+    """Extract just the final palette from a critic response, tolerant of any `steps`
+    schema (the critic uses a different step shape, which crashes the strict parser)."""
+    try:
+        data = _extract_json(raw)
+        fr = data.get("flow_result") or data.get("final") or data.get("palette")
+        c = canonical_palette(fr)
+        if c:
+            return c
+    except Exception:
+        pass
+    got = extract_palettes(raw)  # last resort: first canonical palette named anywhere
+    return got[0] if got else None
 
 CRITIC_SYSTEM = """You are the senior CAMS auditor doing a SECOND, independent review of a
 first-pass drape analysis. The first pass is frequently wrong in one specific way and your job
@@ -110,9 +125,7 @@ def process(model, provider, case, prompt, k, do_reaudit):
         try:
             images = load_client_images(get_settings().images_root, cid)
             raw = provider.complete(CRITIC_SYSTEM, critic_user(cid, first_full), images)
-            rr = parse_result(raw)
-            if rr.valid:
-                reaudit_v = canonical_palette(rr.flow_result)
+            reaudit_v = parse_flow_tolerant(raw)
         except Exception:
             pass
     final = vote(first_passes, reaudit_v)

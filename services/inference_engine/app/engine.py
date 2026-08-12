@@ -111,7 +111,9 @@ def run_client(client_id: str, provider=None, prompt: str | None = None) -> tupl
     if not images:
         raise FileNotFoundError(f"no images found for client '{client_id}' under {s.images_root}")
     user_msg = "Analyse this client's five drape images and return the JSON verdict."
-    user_msg += _depth_hint(client_id)
+    # NOTE: explicit depth-band injection (_depth_hint) was tested in v3 and REGRESSED
+    # accuracy (28% -> 14%): the model over-obeys the crude light/deep label and floods
+    # Deep/Light. Kept in the file for reference but no longer appended to the prompt.
     t0 = time.time()
     raw = provider.complete(prompt, user_msg, images)
     latency = int((time.time() - t0) * 1000)
