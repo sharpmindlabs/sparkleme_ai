@@ -1,0 +1,7 @@
+# Local SQLite DB, image store, and caches (generated at runtime)
+sparkleme.db
+sparkleme.db-journal
+_imagestore/
+__pycache__/
+*.pyc
+.pytest_cache/

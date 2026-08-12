@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  /** Override the engine API base (default same-origin "/api"). */
+  /** Base URL of the SparkleMe REST API. Default: http://localhost:8000 */
   readonly VITE_API_BASE?: string;
 }
 

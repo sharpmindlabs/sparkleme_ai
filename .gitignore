@@ -34,3 +34,12 @@ fixtures/cases/**/*.png
 
 # Logs
 *.log
+
+# Backend runtime state (created by seed/run, not source)
+*.db
+*.sqlite
+*.sqlite3
+services/api/_imagestore/
+services/inference_engine/results/
+services/inference_engine/results_*/
+services/inference_engine/realimages/

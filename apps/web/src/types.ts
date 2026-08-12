@@ -1,76 +1,165 @@
-// Contracts mirrored from the FastAPI engine (services/inference_engine/app/schema.py).
+// Domain contracts for the SparkleMe platform app. These mirror the Functional
+// Spec output contract (§5.5), data model (§9) and REST sketch (§11).
 
-export type MatchKind =
-  | "exact"
-  | "boundary"
-  | "miss"
-  | "error"
-  | "no_ground_truth";
+export type Role = "ADMIN" | "EXPERT" | "ANALYST" | "VIEWER";
+
+export const ROLE_LABELS: Record<Role, string> = {
+  ADMIN: "Admin",
+  EXPERT: "Colour Analysis Expert",
+  ANALYST: "Colour Analyst",
+  VIEWER: "Viewer",
+};
+
+export type UserStatus = "Active" | "Suspended";
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  status: UserStatus;
+}
+
+export interface Session {
+  token: string;
+  user: Pick<User, "name" | "email" | "role">;
+}
+
+export type Undertone = "Cool" | "Warm";
+export type HomeSeason = "Winter" | "Summer" | "Spring" | "Autumn";
+export type Confidence = "High" | "Medium" | "Low";
+
+export type AnalysisStatus =
+  | "Running"
+  | "Pending Review"
+  | "Approved"
+  | "Corrected"
+  | "Needs Human Review"
+  | "Conflicting Inputs"
+  | "Finalized";
+
+export type ResultStatus =
+  | "OK"
+  | "INVALID_INPUT"
+  | "CONFLICTING_INPUTS"
+  | "NEEDS_HUMAN_REVIEW";
 
 export interface DrapeStep {
-  step: string;
+  step: number;
   winner: string;
   criteria_cited: number[];
-  reasoning: string;
+  reasoning?: string;
 }
 
-export interface InferenceResult {
-  home_season: string | null;
-  flow_result: string | null;
-  leaning: string | null;
-  confidence: string | null;
-  steps: DrapeStep[];
-  final_reasoning: string;
-  valid: boolean;
-  validation_error: string | null;
+export interface Evidence {
+  a_eyes: string;
+  b_hair: string;
+  c_skin: string;
+  d_drape_steps: DrapeStep[];
 }
 
-export interface CaseResult {
-  client_id: string;
-  test_id: number | null;
+export interface ModelVote {
   model: string;
-  carol_result: string | null;
-  carol_primary: string | null;
-  carol_accepted: string[];
-  predicted: string | null;
-  match: boolean;
-  match_kind: MatchKind;
-  confidence: string | null;
-  latency_ms: number | null;
-  error: string | null;
-  result: InferenceResult | null;
+  vote: string;
+  raw?: string;
 }
 
-export interface BatchSummary {
-  model: string;
-  provider: string;
-  total: number;
-  scored: number;
-  exact: number;
-  boundary: number;
-  misses: number;
-  errors: number;
-  accuracy: number; // 0..1  (exact + boundary) / scored
-  exact_accuracy: number; // 0..1
-  confusion: Record<string, Record<string, number>>;
-  cases: CaseResult[];
+export interface EngineSnapshot {
+  mode: "single" | "consensus";
+  strategy?: string;
+  primary?: string;
+  models?: string[];
+}
+
+/** A single analysis record (list + detail). */
+export interface Analysis {
+  id: number;
+  client: string;
+  date: string;
+  // Inputs
+  hair: string;
+  fitzpatrick: string;
+  notes?: string;
+  tone: string; // demo skin-tone key for the placeholder overlay
+  // Result (§5.5)
+  result_status: ResultStatus;
+  status: AnalysisStatus;
+  undertone: Undertone | null;
+  home_season: HomeSeason | null;
+  ai_result: string | null; // AI consensus flow_result
+  expert_result: string | null; // expert-finalised palette (if reviewed)
+  confidence: number; // 0..100
+  candidate_set: string[];
+  evidence: Evidence;
+  model_votes: ModelVote[];
+  prompt_version: string;
+  engine: EngineSnapshot;
+  why: string;
+  expert_note: string | null;
+}
+
+/** Confidence bucket per §5.5 (High / Medium / Low). */
+export function confidenceLabel(pct: number): Confidence {
+  if (pct >= 88) return "High";
+  if (pct >= 70) return "Medium";
+  return "Low";
+}
+
+export interface PromptVersion {
+  version: string;
+  date: string;
+  author: string;
+  note: string;
+  accuracy: number | null; // first-pass approval rate while active
+  body: string;
+  active: boolean;
+}
+
+export type PromptType = "analysis" | "audit";
+
+export interface ModelConfig {
+  id: string;
+  name: string;
+  type: "Commercial" | "Open source";
+  enabled: boolean;
+  weight: number;
+  accuracy: number;
+  latency: string;
+  training: string;
 }
 
 export interface EngineConfig {
-  provider: string;
-  model: string;
-  images_root: string;
-  available_clients: string[];
-  available_count: number;
-  palettes: string[];
-  flows_by_season: Record<string, string[]>;
+  mode: "single" | "consensus";
+  strategy: string;
+  primary: string;
 }
 
-export interface CaseMeta {
-  test_id: number | null;
-  client_id: string;
-  carol_result: string | null;
-  ai_first_pass: string | null;
-  correct_first_time: string | null;
-  has_images: boolean;
+export interface Correction {
+  id: number;
+  palette: string;
+  note: string;
+  date: string;
+  by: string;
+}
+
+export interface TrainingJob {
+  id: string;
+  model: string;
+  method: string;
+  examples: number;
+  status: "Completed" | "Running" | "Live" | "Failed";
+  delta: string;
+}
+
+export interface ReviewBody {
+  verdict: "APPROVE" | "CORRECT";
+  palette?: string;
+  comments: string;
+  influence?: string;
+}
+
+export interface RerunLog {
+  lines: string[];
+  memory: "HIT" | "MISS";
+  result: string;
 }

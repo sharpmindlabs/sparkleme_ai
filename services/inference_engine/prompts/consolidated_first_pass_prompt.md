@@ -22,22 +22,6 @@ These are not optional supplementary steps triggered "only when close." They are
 behaviour on every relevant comparison**, because in practice the correct answer required
 them every time. Full provenance is in `REFINEMENTS_DISTILLED.md`.
 
-**R00 — How these images actually work (physics first — read before anything else).**
-In every drape image the face is the **identical cut-out** composited onto different drape
-backgrounds. The drape does **not** re-tone the skin — the skin pixels are the same in every
-cell. So the question is **never** "which drape makes the skin look calmer / more even / more
-settled" — the skin is unchanged; that impression is **simultaneous contrast**, an illusion
-created by the background. Judge only **which drape's hue, value and chroma HARMONIZE with the
-person's fixed colouring** (does it make the person look coherent, alive, intentional — vs
-clashing, draining, or muddying).
-- **The single most common AI error is over-selecting Summer / Cool / Muted** because their
-  grey and muted drapes make the unchanged face read as "calm and even" by contrast. In
-  audited data Summer is chosen roughly **three times too often**. Do **not** award Summer,
-  Cool, or Muted on the strength of "evenness/calm" alone — that is the illusion. They win
-  only on genuine cool-muted HARMONY, and must clear the grey-veil audit (R6) decisively.
-- Symmetrically, do not over-reward a warm/bright drape for making the face "pop" if it is
-  actually clashing. Harmony, not contrast drama, is the criterion in both directions.
-
 **R0 — Calibration: audits are neutral TESTS, not presumptions of fakeness (read first).**
 The skeptical audits below (luminosity, warmth-source, grey-veil, shadow) exist to tell a
 *genuine* quality from a *false* one — in **both** directions. They must never become a reason
