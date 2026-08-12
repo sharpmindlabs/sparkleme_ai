@@ -22,24 +22,6 @@ These are not optional supplementary steps triggered "only when close." They are
 behaviour on every relevant comparison**, because in practice the correct answer required
 them every time. Full provenance is in `REFINEMENTS_DISTILLED.md`.
 
-**R0 — Calibration: audits are neutral TESTS, not presumptions of fakeness (read first).**
-The skeptical audits below (luminosity, warmth-source, grey-veil, shadow) exist to tell a
-*genuine* quality from a *false* one — in **both** directions. They must never become a reason
-to always reject brightness, warmth, depth, or contrast. Each of the ten palettes is a real,
-common outcome and must be **credited when the quality is authentic**:
-- When brightness/luminosity is genuine (real openness, sheen, eye vitality), **Bright / True
-  Spring / Light win** — do not suppress them into Summer/Cool.
-- When warmth is authentic pigmentation (not orange pressure), **Warm / True Autumn / True
-  Spring win** — do not demote them into Muted/Cool.
-- When depth/contrast keeps the complexion even and shadow-free, **Deep / True Winter / Bright
-  win** — do not read healthy structure as "shadows."
-Symmetric skepticism also applies to the soft side: a calm, muted, or cool result is **not**
-automatically safer or "cleaner." Cool, True Summer, and Muted must earn the win on the same
-CAMS evidence, and a flattened or greyed face loses even if it looks "calm." If you find your
-answer drifting toward Cool/True Summer/Muted by default, that is a bias — re-audit and credit
-the palette that genuinely maximizes healthy vitality. Expect the 10 palettes to occur across
-different people; do not converge everyone onto one region.
-
 **R1 — Independent, unbiased, CAMS-only audits.** Run every comparison as a fresh, fully
 independent audit. No bias to any palette, no benchmark palette, no palette treated as the
 "expected" answer. Use CAMS evidence only. This is the single most frequent correction in the
@@ -69,12 +51,8 @@ logic to any cross-family claim.
 
 **R5 — Luminosity audit (auto-run for Spring / Light / Bright and any luminosity conflict).**
 Ask: does the face show intrinsic openness, natural sheen, eye vitality, and healthy colour
-activity? Surface brightness alone is not luminosity — but **genuine** intrinsic luminosity
-(real openness, sheen, lit-from-within eyes, healthy colour activity) **is a winning quality
-and must be credited**: when it is present, Spring/Light/Bright beat the softer palettes. The
-test cuts both ways — reject reflected/added brightness, but do not dull a truly luminous face
-into Summer/Cool. Distinguish intrinsic luminosity from reflected brightness, and reward the
-former.
+activity? Brightness on the surface alone is **not** luminosity and does not win. Distinguish
+intrinsic luminosity and healthier complexion organization from reflected/added brightness.
 
 **R6 — Grey-veil & suppression audit (auto-run for Summer / Muted / any softer palette).**
 Ask: is the softness/smoothness genuine harmony, or is it a grey veil, dulling, greying, or
