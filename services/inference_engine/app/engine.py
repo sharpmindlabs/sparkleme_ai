@@ -40,13 +40,33 @@ def _extract_json(text: str) -> dict:
     return json.loads(text)
 
 
+def _canon_palette(value):
+    """Map a model's palette string to one of the 10 canonical names, tolerating
+    extra words (e.g. 'Bright Spring' -> 'Bright', 'True Summer (Cool)' -> 'True Summer')."""
+    from .palettes import PALETTES, extract_palettes
+    if value in PALETTES:
+        return value
+    found = extract_palettes(value or "")
+    return found[0] if found else value
+
+
+def _canon_season(value):
+    from .palettes import HOME_SEASONS
+    if value in HOME_SEASONS:
+        return value
+    for s in HOME_SEASONS:
+        if value and s.lower() in value.lower():
+            return s
+    return value
+
+
 def parse_result(raw: str) -> InferenceResult:
     data = _extract_json(raw)
     steps = [DrapeStep(**s) if isinstance(s, dict) else DrapeStep(step=str(s), winner="")
              for s in data.get("steps", [])]
     return InferenceResult(
-        home_season=data.get("home_season"),
-        flow_result=data.get("flow_result"),
+        home_season=_canon_season(data.get("home_season")),
+        flow_result=_canon_palette(data.get("flow_result")),
         leaning=data.get("leaning"),
         confidence=data.get("confidence", "Low"),
         steps=steps,

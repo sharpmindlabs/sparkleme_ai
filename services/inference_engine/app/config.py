@@ -16,21 +16,24 @@ ENGINE_ROOT = Path(__file__).resolve().parents[1]
 
 
 class Settings:
-    provider: str = os.getenv("SPARKLEME_PROVIDER", "mock").lower()
+    def __init__(self):
+        # Read env at instantiation (NOT at class-definition time) so callers
+        # that mutate os.environ + get_settings.cache_clear() take effect.
+        self.provider = os.getenv("SPARKLEME_PROVIDER", "mock").lower()
 
-    anthropic_api_key: str = os.getenv("ANTHROPIC_API_KEY", "")
-    anthropic_model: str = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-5")
+        self.anthropic_api_key = os.getenv("ANTHROPIC_API_KEY", "")
+        self.anthropic_model = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-5")
 
-    azure_endpoint: str = os.getenv("AZURE_FOUNDRY_ENDPOINT", "")
-    azure_api_key: str = os.getenv("AZURE_FOUNDRY_API_KEY", "")
-    azure_model: str = os.getenv("SPARKLEME_AZURE_MODEL", "gpt-5.6-sol")
+        self.azure_endpoint = os.getenv("AZURE_FOUNDRY_ENDPOINT", "")
+        self.azure_api_key = os.getenv("AZURE_FOUNDRY_API_KEY", "")
+        self.azure_model = os.getenv("SPARKLEME_AZURE_MODEL", "gpt-5.6-sol")
 
-    images_root: Path = Path(os.getenv("SPARKLEME_IMAGES_ROOT", str(ENGINE_ROOT / "fixtures" / "cases")))
-    goldenset_path: Path = Path(os.getenv(
-        "SPARKLEME_GOLDENSET", str(REPO_ROOT / "data" / "goldenset" / "top50_cases.json")))
-    prompt_path: Path = Path(os.getenv(
-        "SPARKLEME_PROMPT", str(ENGINE_ROOT / "prompts" / "consolidated_first_pass_prompt.md")))
-    results_dir: Path = Path(os.getenv("SPARKLEME_RESULTS_DIR", str(ENGINE_ROOT / "results")))
+        self.images_root = Path(os.getenv("SPARKLEME_IMAGES_ROOT", str(ENGINE_ROOT / "fixtures" / "cases")))
+        self.goldenset_path = Path(os.getenv(
+            "SPARKLEME_GOLDENSET", str(REPO_ROOT / "data" / "goldenset" / "top50_cases.json")))
+        self.prompt_path = Path(os.getenv(
+            "SPARKLEME_PROMPT", str(ENGINE_ROOT / "prompts" / "consolidated_first_pass_prompt.md")))
+        self.results_dir = Path(os.getenv("SPARKLEME_RESULTS_DIR", str(ENGINE_ROOT / "results")))
 
     def model_label(self) -> str:
         if self.provider == "anthropic":
