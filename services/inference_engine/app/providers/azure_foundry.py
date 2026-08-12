@@ -25,11 +25,11 @@ def _resource_root(endpoint: str) -> str:
 class AzureFoundryProvider:
     name = "azure_foundry"
 
-    def __init__(self):
+    def __init__(self, model: str | None = None):
         s = get_settings()
         if not s.azure_api_key or not s.azure_endpoint:
             raise RuntimeError("AZURE_FOUNDRY_ENDPOINT / AZURE_FOUNDRY_API_KEY not set")
-        self._model = s.azure_model
+        self._model = model or s.azure_model
         self.supports_vision = self._model.lower() not in TEXT_ONLY_MODELS
         self._url = os.getenv("AZURE_FOUNDRY_CHAT_URL") or (
             _resource_root(s.azure_endpoint) + "/models/chat/completions")
