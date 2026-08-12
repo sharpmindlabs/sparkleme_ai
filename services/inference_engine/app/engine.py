@@ -74,6 +74,34 @@ def parse_result(raw: str) -> InferenceResult:
     ).sanity_check()
 
 
+_METRICS_CACHE: dict | None = None
+
+
+def _depth_hint(client_id: str) -> str:
+    """Append the one OBJECTIVE, validated measurement — value/depth from ITA — as a
+    soft constraint. Undertone (warm/cool) is NOT reliably measurable from these
+    composited photos, so we deliberately do not assert it. Depth separates the
+    light seasons (Spring/Summer/Light) from the deep ones (Autumn/Winter/Deep)."""
+    global _METRICS_CACHE
+    if _METRICS_CACHE is None:
+        p = Path(__file__).resolve().parents[1] / "results" / "skin_metrics.json"
+        try:
+            _METRICS_CACHE = json.loads(p.read_text())
+        except Exception:
+            _METRICS_CACHE = {}
+    d = _METRICS_CACHE.get(str(client_id))
+    if not d or d.get("ita") is None:
+        return ""
+    ita = d["ita"]
+    band = ("very light" if ita > 45 else "light" if ita > 30 else
+            "medium" if ita > 18 else "deep" if ita > 5 else "very deep")
+    return (f"\n\nOBJECTIVE MEASUREMENT (from pixels, undertone-neutral): the person's "
+            f"skin value/depth measures **{band}** (ITA {ita:.0f}). Treat this as a strong "
+            f"constraint on the VALUE axis only — a light measurement favours the lighter "
+            f"palettes and a deep measurement favours the deeper palettes — but decide "
+            f"warm/cool and chroma purely from the drape harmony in the images.")
+
+
 def run_client(client_id: str, provider=None, prompt: str | None = None) -> tuple[InferenceResult, int, list[dict]]:
     """Returns (result, latency_ms, images). Raises on hard failure (caller handles)."""
     s = get_settings()
@@ -83,6 +111,7 @@ def run_client(client_id: str, provider=None, prompt: str | None = None) -> tupl
     if not images:
         raise FileNotFoundError(f"no images found for client '{client_id}' under {s.images_root}")
     user_msg = "Analyse this client's five drape images and return the JSON verdict."
+    user_msg += _depth_hint(client_id)
     t0 = time.time()
     raw = provider.complete(prompt, user_msg, images)
     latency = int((time.time() - t0) * 1000)
