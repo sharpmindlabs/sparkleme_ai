@@ -1,51 +1,51 @@
 # SparkleMe AI
 
-AI-powered **seasonal colour analysis**. SparkleMe AI productizes the CAMS
-(Colour Analysis Method System) expert methodology into a repeatable,
-auditable pipeline: it takes a person's photos plus a few self-reported
-inputs, determines their colour **palette** (one of 10 seasons), and produces
-a personalized report.
+AI-assisted virtual **colour analysis** — determining which of ten colour palettes
+harmonizes with a person's natural colouring, digitizing expert "Carol's" CAMS method.
 
-The product ships **analyst-assist first** (AI proposes a palette with a full
-reasoning trail; a human reviews and finalizes), architected so the same
-pipeline can move to self-serve once accuracy is proven against the
-regression case set.
+This repo currently contains the **core inferencing engine + eval UI** (the first slice),
+plus the full source documentation for the wider platform.
 
-## The method (CAMS), in brief
+## What's here
 
-A deterministic orchestrator sequences an expert procedure — it does not
-"classify". A palette wins only if it improves whole-face physiology **while
-preserving authentic complexion** (never for structure, smoothness,
-brightness, or warmth alone).
+| Path | What it is |
+|---|---|
+| `services/inference_engine/` | The inference engine + eval harness: 5 drape images → AI vision model → 1 of 10 palettes, scored vs Carol's ground truth. Runnable now. |
+| `apps/web/` | React review UI: run all cases, review AI-vs-Carol results, accuracy + confusion. |
+| `data/goldenset/` | The TOP-50 ground truth (Carol's column O) + refinement trail. |
+| `data/rulebook/source_docs/` | The CAMS knowledge corpus (25 KB docs + 3 base prompts) + digest. |
+| `docs/specs/` | Official BRD, Functional Spec, Technical Spec, and the two operational prompts. |
+| `docs/prototype/` | Reference UX prototype. |
 
-1. **Reset & evidence** — every case starts blind; hair colour / Fitzpatrick
-   used only if provided.
-2. **Pre-filter** — hair, Fitzpatrick, earthy, and flush signals eliminate
-   impossible palettes.
-3. **Phase 2A** — observe each Home Season (Winter/Summer/Spring/Autumn)
-   independently on the 7 CAMS checks + audits (no ranking yet).
-4. **Phase 2B** — six pairwise Home-Season comparisons with reset +
-   reverse-order verification.
-5. **Phase 3** — round-robin the flow palettes within the chosen season.
-6. **Final verification** — audits + anti-bias gates before the result.
+## The inference slice (built first)
 
-**The 10 palettes:** True Winter, True Summer, True Spring, True Autumn, Cool,
-Warm, Bright, Light, Deep, Muted.
+Takes **5 drape images per client** (no hair colour / Fitzpatrick), sends them to a vision
+model with a **consolidated CAMS prompt** — Carol's base method + the 14 standing rules
+distilled from her 31-case refinement trail — and returns one of the ten palettes with
+per-step reasoning. Results are scored against Carol's column O (lenient on stated boundaries).
 
-## Repository status
+**Baseline to beat:** Carol's own first pass was 32/50 (64%).
 
-🚧 Early scaffolding. The CAMS source documents (expert knowledge base +
-base prompts) are being ingested into `data/rulebook/source_docs/` as the
-build's source of truth. Architecture and build plan are defined; module
-implementation follows.
+### Run the demo (mock, no keys, no network)
+```bash
+make install          # pip install engine deps
+make demo             # generate placeholder images + run a mock batch (CLI)
 
-## Layout (planned)
-
+# or the full UI:
+cd apps/web && npm install && npm run build   # build the UI
+make engine           # serve API + UI at http://localhost:8000
 ```
-apps/web/         Next.js + TypeScript — intake, analyst review, report
-services/engine/  Python + FastAPI — CAMS pipeline, CV + LLM vision, evals
-packages/shared/  Cross-language types & contracts
-data/rulebook/    CAMS source docs + compiled rules config
-data/palettes/    10-palette swatch definitions
-fixtures/         Sample cases (images wired via provider interface)
-```
+
+### Run for real
+Set a provider in `services/inference_engine/.env` (`anthropic` or `azure_foundry`),
+place each client's images at `${SPARKLEME_IMAGES_ROOT}/<client_id>/*.jpg` (or a
+`<client_id>.pdf`), and run `make engine`. See `services/inference_engine/README.md`.
+
+> Note on the dev sandbox: the Azure AI Foundry endpoint and the client image store are
+> both network-blocked from the cloud dev environment, so the live 5-model bake-off runs
+> on infra where those are reachable. The engine + UI run here fully on the mock provider.
+
+## Wider platform
+The BRD/Functional/Technical specs in `docs/specs/` define the full 6-milestone platform
+(Keycloak, PostgreSQL+pgvector, Temporal, LiteLLM/vLLM, consensus, correction memory,
+golden-set-gated MLOps). The inference engine here is the M2 core of that plan.
