@@ -1,65 +1,69 @@
 """Azure AI Foundry provider — one endpoint serves all configured models
 (grok-4.3, gpt-5.6-sol, gpt-5.4, gpt-5.6-terra, Kimi-K2.6).
 
-Uses the OpenAI-compatible `/models` inference route on the Foundry resource.
-NOTE: this adapter is written to the documented Foundry contract but could not
-be validated from the dev sandbox (the Azure host is egress-blocked here). The
-base URL / api-version are env-overridable so it can be tuned on your infra.
+Validated contract (2026-08): POST {resource}/models/chat/completions with
+`api-key` header and the model in the body. GPT-5-class models:
+  - require `max_completion_tokens` (NOT `max_tokens`)
+  - reject `temperature` other than the default (1) -> we omit temperature
+  - are reasoning models -> need a generous completion budget or output is empty
+Kimi-K2.6 is text-only (no image input).
 """
 from __future__ import annotations
+import os
 import re
+import httpx
 
 from ..config import get_settings
 
-# Models that cannot accept images — usable only as text adjudicators, not drape judges.
 TEXT_ONLY_MODELS = {"kimi-k2.6", "kimi-k2", "kimi"}
 
 
-def _derive_models_base(endpoint: str, override: str | None) -> str:
-    if override:
-        return override.rstrip("/")
-    # strip a trailing /api/projects/<name> to get the resource root
-    root = re.sub(r"/api/projects/[^/]+/?$", "", endpoint.rstrip("/"))
-    return root.rstrip("/") + "/models"
+def _resource_root(endpoint: str) -> str:
+    return re.sub(r"/api/projects/[^/]+/?$", "", endpoint.rstrip("/")).rstrip("/")
 
 
 class AzureFoundryProvider:
     name = "azure_foundry"
 
     def __init__(self):
-        import os
         s = get_settings()
         if not s.azure_api_key or not s.azure_endpoint:
             raise RuntimeError("AZURE_FOUNDRY_ENDPOINT / AZURE_FOUNDRY_API_KEY not set")
         self._model = s.azure_model
         self.supports_vision = self._model.lower() not in TEXT_ONLY_MODELS
-        base_url = _derive_models_base(s.azure_endpoint, os.getenv("AZURE_FOUNDRY_BASE_URL"))
-        api_version = os.getenv("AZURE_FOUNDRY_API_VERSION", "2024-05-01-preview")
-        from openai import OpenAI
-        # Azure authenticates with the `api-key` header (not Bearer).
-        self._client = OpenAI(
-            base_url=base_url,
-            api_key=s.azure_api_key,
-            default_query={"api-version": api_version},
-            default_headers={"api-key": s.azure_api_key},
-        )
+        self._url = os.getenv("AZURE_FOUNDRY_CHAT_URL") or (
+            _resource_root(s.azure_endpoint) + "/models/chat/completions")
+        self._api_version = os.getenv("AZURE_FOUNDRY_API_VERSION", "2024-05-01-preview")
+        self._key = s.azure_api_key
+        self._max_completion_tokens = int(os.getenv("AZURE_MAX_COMPLETION_TOKENS", "4096"))
+        # temperature omitted by default (GPT-5 rejects non-default); set to opt in
+        self._temperature = os.getenv("AZURE_TEMPERATURE")
+        self._timeout = float(os.getenv("AZURE_TIMEOUT", "180"))
 
     def complete(self, system_prompt: str, user_prompt: str, images: list[dict]) -> str:
-        user_content: list[dict] = []
+        content: list[dict] = [{"type": "text", "text": user_prompt}]
         if self.supports_vision:
             for img in images:
-                user_content.append({
+                content.append({
                     "type": "image_url",
                     "image_url": {"url": f"data:{img['media_type']};base64,{img['b64']}"},
                 })
-        user_content.append({"type": "text", "text": user_prompt})
-        resp = self._client.chat.completions.create(
-            model=self._model,
-            temperature=0,
-            max_tokens=2048,
-            messages=[
+        body = {
+            "model": self._model,
+            "messages": [
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_content},
+                {"role": "user", "content": content},
             ],
+            "max_completion_tokens": self._max_completion_tokens,
+        }
+        if self._temperature is not None:
+            body["temperature"] = float(self._temperature)
+        r = httpx.post(
+            self._url, params={"api-version": self._api_version},
+            headers={"api-key": self._key, "Content-Type": "application/json"},
+            json=body, timeout=self._timeout,
         )
-        return resp.choices[0].message.content or ""
+        if r.status_code != 200:
+            raise RuntimeError(f"Azure {self._model} HTTP {r.status_code}: {r.text[:300]}")
+        data = r.json()
+        return data["choices"][0]["message"]["content"] or ""
