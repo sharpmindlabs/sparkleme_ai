@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sparkleme.ai/schemas/first_pass_result.json",
+  "title": "SparkleMe First-Pass CAMS Result",
+  "description": "Strict structured output returned by the inference engine for a single client (5 drape images). flow_result must be one of the 10 palettes AND a valid flow of home_season. leaning, when non-null, must be a different valid flow of the same home_season.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["home_season", "flow_result", "leaning", "confidence", "steps", "final_reasoning"],
+  "properties": {
+    "home_season": {
+      "type": "string",
+      "enum": ["Winter", "Summer", "Spring", "Autumn"],
+      "description": "The chosen Home Season from Phase B pairwise comparisons."
+    },
+    "flow_result": {
+      "type": "string",
+      "enum": [
+        "True Winter", "True Summer", "True Spring", "True Autumn",
+        "Cool", "Warm", "Deep", "Bright", "Light", "Muted"
+      ],
+      "description": "Final palette. Must be a valid flow of home_season."
+    },
+    "leaning": {
+      "type": ["string", "null"],
+      "enum": [
+        "True Winter", "True Summer", "True Spring", "True Autumn",
+        "Cool", "Warm", "Deep", "Bright", "Light", "Muted", null
+      ],
+      "description": "Neighbouring palette the result leans toward for a genuine boundary case (the 'True X moving slightly toward Y' runner-up), else null. When non-null must be a valid flow of home_season and differ from flow_result."
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["High", "Medium", "Low"]
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Ordered record of every comparison performed across Phases A-D.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["step", "winner", "criteria_cited", "reasoning"],
+        "properties": {
+          "step": {
+            "type": "string",
+            "description": "Comparison label, e.g. 'Phase B: Winter vs Summer' or 'Phase C: True Winter vs Deep'."
+          },
+          "winner": {
+            "type": "string",
+            "description": "Palette or Home Season that won this step; use 'tie' if genuinely tied and carried forward."
+          },
+          "criteria_cited": {
+            "type": "array",
+            "description": "Which of the 7 CAMS checks drove the step: 1 Facial Details, 2 Skin Colour, 3 Skin Consistency, 4 Jawline, 5 Eyes, 6 Focus, 7 Balance/Harmony.",
+            "items": { "type": "integer", "minimum": 1, "maximum": 7 },
+            "minItems": 1,
+            "uniqueItems": true
+          },
+          "reasoning": {
+            "type": "string",
+            "description": "Image-grounded justification. Must classify any advantage as physiological vs palette-created, not generic language."
+          }
+        }
+      }
+    },
+    "final_reasoning": {
+      "type": "string",
+      "description": "Whole-face summary: why the winner won, why the runner-up lost, and the outcome of the anti-bias gates."
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "home_season": { "const": "Winter" } } },
+      "then": {
+        "properties": {
+          "flow_result": { "enum": ["True Winter", "Cool", "Deep", "Bright"] },
+          "leaning": { "enum": ["True Winter", "Cool", "Deep", "Bright", null] }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "home_season": { "const": "Summer" } } },
+      "then": {
+        "properties": {
+          "flow_result": { "enum": ["True Summer", "Cool", "Light", "Muted"] },
+          "leaning": { "enum": ["True Summer", "Cool", "Light", "Muted", null] }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "home_season": { "const": "Spring" } } },
+      "then": {
+        "properties": {
+          "flow_result": { "enum": ["True Spring", "Warm", "Light", "Bright"] },
+          "leaning": { "enum": ["True Spring", "Warm", "Light", "Bright", null] }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "home_season": { "const": "Autumn" } } },
+      "then": {
+        "properties": {
+          "flow_result": { "enum": ["True Autumn", "Warm", "Deep", "Muted"] },
+          "leaning": { "enum": ["True Autumn", "Warm", "Deep", "Muted", null] }
+        }
+      }
+    }
+  ]
+}
