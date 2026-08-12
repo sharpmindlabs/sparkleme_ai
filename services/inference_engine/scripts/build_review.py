@@ -66,11 +66,10 @@ def build():
                      d["misses"], d["errors"], d["scored"]))
     rows.sort(key=lambda r: r[1], reverse=True)
     summ = "".join(
-        f"<tr><td>{html.escape(m)}</td><td class=num>{acc:.0%}</td><td class=num>{ex:.0%}</td>"
+        f"<tr><td>{html.escape(m)}</td><td class=num>{acc:.0%}</td><td class=num>{exx:.0%}</td>"
         f"<td class=num>{e}</td><td class=num>{b}</td><td class=num>{mi}</td>"
         f"<td class=num>{er}</td><td class=num>{sc}</td></tr>"
-        for (m, acc, exx, e, b, mi, er, sc) in
-        [(m, acc, ex, e, b, mi, er, sc) for (m, acc, ex, e, b, mi, er, sc) in rows])
+        for (m, acc, exx, e, b, mi, er, sc) in rows)
 
     # per client
     cards = []
